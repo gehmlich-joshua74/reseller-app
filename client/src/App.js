@@ -3,6 +3,12 @@ import axios from 'axios';
 import './App.css';
 
 const API = 'http://localhost:5001/api';
+const formatCurrency = (amount) => {
+  return parseFloat(amount || 0).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  });
+};
 
 function App() {
   const [items, setItems] = useState([]);
@@ -81,24 +87,24 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
   };
 
   const profit = item.status === 'sold' && item.sale_price
-    ? (parseFloat(item.sale_price) - parseFloat(item.cost)).toFixed(2)
+    ? parseFloat(item.sale_price) - parseFloat(item.cost)
     : null;
 
   return (
     <div className="item-card">
       <div className="item-name">{item.name}</div>
       <div className="item-meta">{item.category} · {item.location}</div>
-      <div className="item-meta">Cost: ${item.cost}</div>
+      <div className="item-meta">Cost: {formatCurrency(item.cost)}</div>
       {item.status === 'listed' && item.asking_price && (
-        <div className="item-meta">Asking: ${parseFloat(item.asking_price).toFixed(2)}</div>
+        <div className="item-meta">Asking: {formatCurrency(item.asking_price)}</div>
       )}
       {item.status === 'listed' && item.platform && (
         <div className="item-meta">Platform: {item.platform}</div>
       )}
       {item.status === 'sold' && item.sale_price && (
-        <div className="item-meta">Sold for: ${parseFloat(item.sale_price).toFixed(2)}</div>
+        <div className="item-meta">Sold for: {formatCurrency(item.sale_price)}</div>
       )}
-      {profit && <div className="item-profit">Profit: ${profit}</div>}
+      {profit && <div className="item-profit">Profit: {formatCurrency(profit)}</div>}
       <div className={`item-status ${item.status}`}>{item.status.replace('_', ' ')}</div>
       {item.status === 'listed' && item.listed_at && (
         <div className="item-meta days-sitting">
@@ -194,19 +200,19 @@ function Dashboard() {
         <div className="stat-grid">
           <div className="stat-card">
             <div className="stat-label">Gross Income</div>
-            <div className="stat-value">${parseFloat(financials.gross_income).toFixed(2)}</div>
+            <div className="stat-value">{formatCurrency(financials.gross_income)}</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">Total Cost</div>
-            <div className="stat-value">${parseFloat(financials.total_cost).toFixed(2)}</div>
+            <div className="stat-value">{formatCurrency(financials.total_cost)}</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">Fees & Shipping</div>
-            <div className="stat-value">${(parseFloat(financials.total_fees) + parseFloat(financials.total_shipping)).toFixed(2)}</div>
+            <div className="stat-value">{formatCurrency(parseFloat(financials.total_fees) + parseFloat(financials.total_shipping))}</div>
           </div>
           <div className="stat-card highlight">
             <div className="stat-label">Net Profit</div>
-            <div className="stat-value">${parseFloat(financials.net_profit).toFixed(2)}</div>
+            <div className="stat-value">{formatCurrency(financials.net_profit)}</div>
           </div>
         </div>
       </section>
@@ -227,7 +233,7 @@ function Dashboard() {
               <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent' : ''}>
                 <td>{l.name}</td>
                 <td>{l.platform}</td>
-                <td>${parseFloat(l.asking_price).toFixed(2)}</td>
+                <td>{formatCurrency(l.asking_price)}</td>
                 <td>{l.days_left} days</td>
               </tr>
             ))}
@@ -270,9 +276,9 @@ function Dashboard() {
               <tr key={m.platform}>
                 <td>{m.platform}</td>
                 <td>{m.total_sold}</td>
-                <td>${parseFloat(m.gross_income).toFixed(2)}</td>
-                <td>${(parseFloat(m.total_fees) + parseFloat(m.total_shipping)).toFixed(2)}</td>
-                <td className="profit">${parseFloat(m.net_profit).toFixed(2)}</td>
+                <td>{formatCurrency(m.gross_income)}</td>
+                <td>{formatCurrency(parseFloat(m.total_fees) + parseFloat(m.total_shipping))}</td>
+                <td className="profit">{formatCurrency(m.net_profit)}</td>
               </tr>
             ))}
           </tbody>
@@ -298,7 +304,7 @@ function Dashboard() {
                 <td>{c.total_sold}</td>
                 <td>{c.total_listed}</td>
                 <td>{c.total_at_home}</td>
-                <td className="profit">${parseFloat(c.net_profit).toFixed(2)}</td>
+                <td className="profit">{formatCurrency(c.net_profit)}</td>
               </tr>
             ))}
           </tbody>
@@ -510,8 +516,8 @@ function ByPlatform({ onSold, onEdit, onDelete }) {
               <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
               <div className="platform-card-row"><span>Description</span><span>{item.description || '—'}</span></div>
               <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>
-              <div className="platform-card-row"><span>Cost</span><span>${item.cost}</span></div>
-              <div className="platform-card-row"><span>Asking Price</span><span>${item.asking_price}</span></div>
+              <div className="platform-card-row"><span>Cost</span><span>{formatCurrency(item.cost)}</span></div>
+              <div className="platform-card-row"><span>Asking Price</span><span>{formatCurrency(item.asking_price)}</span></div>
               <div className="platform-card-row"><span>Days Listed</span><span>{Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days</span></div>
               <div className="platform-card-row">
                 <span>Photos Ready</span>
