@@ -149,7 +149,8 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
 function AddItemForm({ refresh, setView }) {
   const [form, setForm] = useState({
     name: '', description: '', category: 'Electronics',
-    cost: '', location: ''
+    cost: '', location: '', quantity: 1, brand: '',
+    model: '', dimensions: '', color: '', condition: '', sku: ''
   });
 
   const handleSubmit = async () => {
@@ -172,7 +173,7 @@ function AddItemForm({ refresh, setView }) {
   return (
     <div className="form-container">
       <h2>Add New Item</h2>
-      <input placeholder="Item name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+      <input placeholder="Item name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
       <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
       <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
         <option>Electronics</option>
@@ -182,8 +183,22 @@ function AddItemForm({ refresh, setView }) {
         <option>Collectibles</option>
         <option>Other</option>
       </select>
-      <input placeholder="Cost ($)" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
+      <input placeholder="Cost ($) *" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
       <input placeholder="Location (e.g. Basement)" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+      <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+      <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+      <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+      <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
+      <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
+      <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
+        <option value="">Condition</option>
+        <option>New</option>
+        <option>Like New</option>
+        <option>Good</option>
+        <option>Fair</option>
+        <option>Poor</option>
+      </select>
+      <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
       <button onClick={handleSubmit}>Add Item</button>
     </div>
   );
@@ -440,7 +455,14 @@ function EditModal({ item, onClose, refresh }) {
     description: item.description || '',
     category: item.category || 'Electronics',
     cost: item.cost || '',
-    location: item.location || ''
+    location: item.location || '',
+    quantity: item.quantity || 1,
+    brand: item.brand || '',
+    model: item.model || '',
+    dimensions: item.dimensions || '',
+    color: item.color || '',
+    condition: item.condition || '',
+    sku: item.sku || ''
   });
 
   const handleSubmit = async () => {
@@ -465,6 +487,20 @@ function EditModal({ item, onClose, refresh }) {
         </select>
         <input placeholder="Cost ($)" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
         <input placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+        <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+        <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+        <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+        <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
+        <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
+        <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
+          <option value="">Condition</option>
+          <option>New</option>
+          <option>Like New</option>
+          <option>Good</option>
+          <option>Fair</option>
+          <option>Poor</option>
+        </select>
+        <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleSubmit} className="btn-confirm">Save Changes</button>
@@ -544,10 +580,14 @@ function ByPlatform({ onSold, onEdit, onDelete }) {
               <div className="platform-card-row"><span>Cost</span><span>{formatCurrency(item.cost)}</span></div>
               <div className="platform-card-row"><span>Asking Price</span><span>{formatCurrency(item.asking_price)}</span></div>
               <div className="platform-card-row"><span>Days Listed</span><span>{Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days</span></div>
-              <div className="platform-card-row">
-                <span>Photos Ready</span>
-                <span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span>
-              </div>
+              <div className="platform-card-row"><span>Photos Ready</span><span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span></div>
+              {item.brand && <div className="platform-card-row"><span>Brand</span><span>{item.brand}</span></div>}
+              {item.model && <div className="platform-card-row"><span>Model</span><span>{item.model}</span></div>}
+              {item.dimensions && <div className="platform-card-row"><span>Dimensions</span><span>{item.dimensions}</span></div>}
+              {item.color && <div className="platform-card-row"><span>Color</span><span>{item.color}</span></div>}
+              {item.condition && <div className="platform-card-row"><span>Condition</span><span>{item.condition}</span></div>}
+              {item.sku && <div className="platform-card-row"><span>SKU</span><span>{item.sku}</span></div>}
+              {item.quantity > 1 && <div className="platform-card-row"><span>Quantity</span><span>{item.quantity}</span></div>}
               <div className="platform-card-actions">
                 <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />
               </div>

@@ -26,12 +26,12 @@ router.get('/', async (req, res) => {
 // POST a new item
 router.post('/', async (req, res) => {
   try {
-    const { added_by, name, description, category, cost, location } = req.body;
+    const { added_by, name, description, category, cost, location, quantity, brand, model, dimensions, color, condition, sku } = req.body;
     const result = await pool.query(
-      `INSERT INTO items (added_by, name, description, category, cost, location)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO items (added_by, name, description, category, cost, location, quantity, brand, model, dimensions, color, condition, sku)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
-      [added_by, name, description, category, cost, location]
+      [added_by, name, description, category, cost, location, quantity || 1, brand, model, dimensions, color, condition, sku]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -70,10 +70,10 @@ router.delete('/:id', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, category, cost, location } = req.body;
+    const { name, description, category, cost, location, quantity, brand, model, dimensions, color, condition, sku } = req.body;
     const result = await pool.query(
-      `UPDATE items SET name=$1, description=$2, category=$3, cost=$4, location=$5 WHERE id=$6 RETURNING *`,
-      [name, description, category, cost, location, id]
+      `UPDATE items SET name=$1, description=$2, category=$3, cost=$4, location=$5, quantity=$6, brand=$7, model=$8, dimensions=$9, color=$10, condition=$11, sku=$12 WHERE id=$13 RETURNING *`,
+      [name, description, category, cost, location, quantity || 1, brand, model, dimensions, color, condition, sku, id]
     );
     res.json(result.rows[0]);
   } catch (err) {

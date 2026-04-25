@@ -17,7 +17,14 @@ CREATE TABLE IF NOT EXISTS "items" (
   "location"     VARCHAR(255),
   "photos_ready" BOOLEAN DEFAULT false,
   "created_at"   TIMESTAMP DEFAULT now(),
-  "updated_at"   TIMESTAMP DEFAULT now()
+  "updated_at"   TIMESTAMP DEFAULT now(),
+  "quantity"     INTEGER DEFAULT 1,
+  "brand"        VARCHAR(255),
+  "model"        VARCHAR(255),
+  "dimensions"   VARCHAR(255),
+  "color"        VARCHAR(255),
+  "condition"    VARCHAR(255),
+  "sku"          VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS "listings" (
