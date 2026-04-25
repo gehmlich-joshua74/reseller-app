@@ -17,6 +17,7 @@ function App() {
   const [soldItem, setSoldItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
+  const [activeBucket, setActiveBucket] = useState('at_home');
 
   useEffect(() => {
     fetchItems();
@@ -44,18 +45,25 @@ function App() {
       </header>
 
       {view === 'inventory' && (
-        <div className="inventory">
-          <div className="bucket at-home">
-            <h2>At Home <span>{atHome.length}</span></h2>
-            {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+        <div className="inventory-wrapper">
+          <div className="mobile-tabs">
+            <button onClick={() => setActiveBucket('at_home')} className={activeBucket === 'at_home' ? 'mobile-tab active-at-home' : 'mobile-tab'}>At Home <span>{atHome.length}</span></button>
+            <button onClick={() => setActiveBucket('listed')} className={activeBucket === 'listed' ? 'mobile-tab active-listed' : 'mobile-tab'}>Listed <span>{listed.length}</span></button>
+            <button onClick={() => setActiveBucket('sold')} className={activeBucket === 'sold' ? 'mobile-tab active-sold' : 'mobile-tab'}>Sold <span>{sold.length}</span></button>
           </div>
-          <div className="bucket listed">
-            <h2>Listed <span>{listed.length}</span></h2>
-            {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
-          </div>
-          <div className="bucket sold">
-            <h2>Sold <span>{sold.length}</span></h2>
-            {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+          <div className="inventory">
+            <div className={`bucket at-home ${activeBucket !== 'at_home' ? 'bucket-hidden' : ''}`}>
+              <h2>At Home <span>{atHome.length}</span></h2>
+              {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+            </div>
+            <div className={`bucket listed ${activeBucket !== 'listed' ? 'bucket-hidden' : ''}`}>
+              <h2>Listed <span>{listed.length}</span></h2>
+              {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+            </div>
+            <div className={`bucket sold ${activeBucket !== 'sold' ? 'bucket-hidden' : ''}`}>
+              <h2>Sold <span>{sold.length}</span></h2>
+              {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+            </div>
           </div>
         </div>
       )}

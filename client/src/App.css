@@ -570,3 +570,62 @@ body {
     padding: 6px 8px;
   }
 }
+
+.inventory-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-tabs {
+  display: none;
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: #f0f0f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #888;
+}
+
+.mobile-tab span {
+  background: rgba(0,0,0,0.1);
+  border-radius: 99px;
+  padding: 2px 7px;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.mobile-tab.active-at-home {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.mobile-tab.active-listed {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.mobile-tab.active-sold {
+  background: #d4edda;
+  color: #155724;
+}
+
+@media (max-width: 768px) {
+  .mobile-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1rem;
+  }
+
+  .bucket-hidden {
+    display: none;
+  }
+
+  .inventory {
+    grid-template-columns: 1fr;
+  }
+}
