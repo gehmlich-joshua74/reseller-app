@@ -115,6 +115,9 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
       {item.status === 'sold' && item.sold_at && (
         <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
       )}
+      {item.status === 'sold' && item.tracking_url && (
+        <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
+      )}
       {profit && <div className="item-profit">Profit: {formatCurrency(profit)}</div>}
       <div className={`item-status ${item.status}`}>{item.status.replace('_', ' ')}</div>
       <div className="photos-toggle" onClick={async () => { await axios.patch(`${API}/items/${item.id}/photos`); refresh(); }}>
@@ -348,7 +351,8 @@ function Dashboard() {
 function ListingModal({ item, onClose, refresh }) {
   const [form, setForm] = useState({
     platform: 'eBay',
-    asking_price: ''
+    asking_price: '',
+    listing_url: ''
   });
   const [error, setError] = useState('');
 
@@ -360,7 +364,8 @@ function ListingModal({ item, onClose, refresh }) {
     await axios.post(`${API}/listings`, {
       item_id: item.id,
       platform: form.platform,
-      asking_price: parseFloat(form.asking_price)
+      asking_price: parseFloat(form.asking_price),
+      listing_url: form.listing_url
     });
     refresh();
     onClose();
@@ -384,6 +389,11 @@ function ListingModal({ item, onClose, refresh }) {
           value={form.asking_price}
           onChange={e => setForm({...form, asking_price: e.target.value})}
         />
+        <input
+          placeholder="Listing URL (optional)"
+          value={form.listing_url}
+          onChange={e => setForm({...form, listing_url: e.target.value})}
+        />
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
@@ -398,7 +408,8 @@ function SoldModal({ item, onClose, refresh }) {
   const [form, setForm] = useState({
     sale_price: '',
     platform_fees: '',
-    shipping_costs: ''
+    shipping_costs: '',
+    tracking_url: ''
   });
   const [error, setError] = useState('');
 
@@ -417,7 +428,8 @@ function SoldModal({ item, onClose, refresh }) {
       item_id: item.id,
       sale_price: parseFloat(form.sale_price),
       platform_fees: parseFloat(form.platform_fees || 0),
-      shipping_costs: parseFloat(form.shipping_costs || 0)
+      shipping_costs: parseFloat(form.shipping_costs || 0),
+      tracking_url: form.tracking_url
     });
     refresh();
     onClose();
@@ -445,6 +457,11 @@ function SoldModal({ item, onClose, refresh }) {
           type="number"
           value={form.shipping_costs}
           onChange={e => setForm({...form, shipping_costs: e.target.value})}
+        />
+        <input
+          placeholder="Tracking URL (optional)"
+          value={form.tracking_url}
+          onChange={e => setForm({...form, tracking_url: e.target.value})}
         />
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
@@ -600,6 +617,18 @@ function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
               {item.condition && <div className="platform-card-row"><span>Condition</span><span>{item.condition}</span></div>}
               {item.sku && <div className="platform-card-row"><span>SKU</span><span>{item.sku}</span></div>}
               {item.notes && <div className="platform-card-row"><span>Notes</span><span>{item.notes}</span></div>}
+              {item.listing_url && (
+                <div className="platform-card-row">
+                  <span>Listing</span>
+                  <a href={item.listing_url} target="_blank" rel="noreferrer" className="card-link">View Listing</a>
+                </div>
+              )}
+              {item.tracking_url && (
+                <div className="platform-card-row">
+                  <span>Tracking</span>
+                  <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
+                </div>
+              )}
               {item.quantity > 1 && <div className="platform-card-row"><span>Quantity</span><span>{item.quantity}</span></div>}
               <div className="platform-card-actions">
                 <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />

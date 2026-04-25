@@ -37,7 +37,9 @@ CREATE TABLE IF NOT EXISTS "listings" (
   "sold_at"        TIMESTAMP,
   "sale_price"     DECIMAL,
   "platform_fees"  DECIMAL,
-  "shipping_costs" DECIMAL
+  "shipping_costs" DECIMAL,
+  "listing_url"    TEXT,
+  "tracking_url"   TEXT
 );
 
 CREATE OR REPLACE FUNCTION update_updated_at()

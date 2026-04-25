@@ -19,12 +19,12 @@ router.get('/:item_id', async (req, res) => {
 // POST a new listing
 router.post('/', async (req, res) => {
   try {
-    const { item_id, platform, asking_price } = req.body;
+    const { item_id, platform, asking_price, listing_url } = req.body;
     const result = await pool.query(
-      `INSERT INTO listings (item_id, platform, asking_price)
-       VALUES ($1, $2, $3)
+      `INSERT INTO listings (item_id, platform, asking_price, listing_url)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [item_id, platform, asking_price]
+      [item_id, platform, asking_price, listing_url]
     );
     // update item status to listed
     await pool.query(
@@ -41,13 +41,13 @@ router.post('/', async (req, res) => {
 router.patch('/:id/sold', async (req, res) => {
   try {
     const { id } = req.params;
-    const { sale_price, platform_fees, shipping_costs, item_id } = req.body;
+    const { sale_price, platform_fees, shipping_costs, item_id, tracking_url } = req.body;
     const result = await pool.query(
       `UPDATE listings 
-       SET sold_at = now(), sale_price = $1, platform_fees = $2, shipping_costs = $3
-       WHERE id = $4
+       SET sold_at = now(), sale_price = $1, platform_fees = $2, shipping_costs = $3, tracking_url = $4
+       WHERE id = $5
        RETURNING *`,
-      [sale_price, platform_fees, shipping_costs, id]
+      [sale_price, platform_fees, shipping_costs, tracking_url, id]
     );
     // update item status to sold
     await pool.query(

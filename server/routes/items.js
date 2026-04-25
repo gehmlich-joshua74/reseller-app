@@ -13,7 +13,9 @@ router.get('/', async (req, res) => {
         l.asking_price,
         l.sale_price,
         l.platform_fees,
-        l.shipping_costs
+        l.shipping_costs,
+        l.listing_url,
+        l.tracking_url
       FROM items i
       LEFT JOIN listings l ON l.item_id = i.id
       ORDER BY i.updated_at DESC

@@ -644,3 +644,14 @@ body {
 }
 
 .photos-toggle:hover { opacity: 0.7; }
+
+.card-link {
+  color: #004085;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
