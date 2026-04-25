@@ -7,6 +7,8 @@ const API = 'http://localhost:5001/api';
 function App() {
   const [items, setItems] = useState([]);
   const [view, setView] = useState('inventory');
+  const [listingItem, setListingItem] = useState(null);
+  const [soldItem, setSoldItem] = useState(null);
 
   useEffect(() => {
     fetchItems();
@@ -36,53 +38,34 @@ function App() {
         <div className="inventory">
           <div className="bucket">
             <h2>At Home <span>{atHome.length}</span></h2>
-            {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} />)}
+            {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} />)}
           </div>
           <div className="bucket">
             <h2>Listed <span>{listed.length}</span></h2>
-            {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} />)}
+            {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} />)}
           </div>
           <div className="bucket">
             <h2>Sold <span>{sold.length}</span></h2>
-            {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} />)}
+            {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} />)}
           </div>
         </div>
       )}
 
       {view === 'add' && <AddItemForm refresh={fetchItems} setView={setView} />}
+      {listingItem && <ListingModal item={listingItem} onClose={() => setListingItem(null)} refresh={fetchItems} />}
+      {soldItem && <SoldModal item={soldItem} onClose={() => setSoldItem(null)} refresh={fetchItems} />}
       {view === 'dashboard' && <Dashboard />}
     </div>
   );
 }
 
-function ItemCard({ item, refresh }) {
-  const handleList = async () => {
-    const platform = prompt('Which platform? (eBay, Mercari, Facebook)');
-    const asking_price = prompt('Asking price?');
-    if (!platform || !asking_price) return;
-    await axios.post(`${API}/listings`, {
-      item_id: item.id,
-      platform,
-      asking_price: parseFloat(asking_price)
-    });
-    refresh();
+function ItemCard({ item, refresh, onList, onSold }) {
+  const handleList = () => {
+    onList(item);
   };
 
-  const handleSold = async () => {
-    const sale_price = prompt('Sale price?');
-    const platform_fees = prompt('Platform fees?');
-    const shipping_costs = prompt('Shipping cost?');
-    if (!sale_price) return;
-    const listingRes = await axios.get(`${API}/listings/${item.id}`);
-    const listing = listingRes.data[0];
-    if (!listing) return alert('No listing found for this item');
-    await axios.patch(`${API}/listings/${listing.id}/sold`, {
-      item_id: item.id,
-      sale_price: parseFloat(sale_price),
-      platform_fees: parseFloat(platform_fees || 0),
-      shipping_costs: parseFloat(shipping_costs || 0)
-    });
-    refresh();
+  const handleSold = () => {
+    onSold(item);
   };
 
   const profit = item.status === 'sold' && item.sale_price
@@ -278,6 +261,117 @@ function Dashboard() {
         </table>
       </section>
 
+    </div>
+  );
+}
+
+function ListingModal({ item, onClose, refresh }) {
+  const [form, setForm] = useState({
+    platform: 'eBay',
+    asking_price: ''
+  });
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!form.asking_price) {
+      setError('Please enter an asking price.');
+      return;
+    }
+    await axios.post(`${API}/listings`, {
+      item_id: item.id,
+      platform: form.platform,
+      asking_price: parseFloat(form.asking_price)
+    });
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>List "{item.name}"</h2>
+        <p className="modal-sub">Where are you listing this?</p>
+        <select value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}>
+          <option>eBay</option>
+          <option>Mercari</option>
+          <option>Facebook Marketplace</option>
+          <option>OfferUp</option>
+          <option>Poshmark</option>
+        </select>
+        <input
+          placeholder="Asking price ($)"
+          type="number"
+          value={form.asking_price}
+          onChange={e => setForm({...form, asking_price: e.target.value})}
+        />
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleSubmit} className="btn-confirm">List Item</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SoldModal({ item, onClose, refresh }) {
+  const [form, setForm] = useState({
+    sale_price: '',
+    platform_fees: '',
+    shipping_costs: ''
+  });
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!form.sale_price) {
+      setError('Please enter a sale price.');
+      return;
+    }
+    const listingRes = await axios.get(`${API}/listings/${item.id}`);
+    const listing = listingRes.data[0];
+    if (!listing) {
+      setError('No listing found for this item.');
+      return;
+    }
+    await axios.patch(`${API}/listings/${listing.id}/sold`, {
+      item_id: item.id,
+      sale_price: parseFloat(form.sale_price),
+      platform_fees: parseFloat(form.platform_fees || 0),
+      shipping_costs: parseFloat(form.shipping_costs || 0)
+    });
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Mark "{item.name}" as Sold</h2>
+        <p className="modal-sub">Enter the sale details</p>
+        <input
+          placeholder="Sale price ($)"
+          type="number"
+          value={form.sale_price}
+          onChange={e => setForm({...form, sale_price: e.target.value})}
+        />
+        <input
+          placeholder="Platform fees ($) — optional"
+          type="number"
+          value={form.platform_fees}
+          onChange={e => setForm({...form, platform_fees: e.target.value})}
+        />
+        <input
+          placeholder="Shipping costs ($) — optional"
+          type="number"
+          value={form.shipping_costs}
+          onChange={e => setForm({...form, shipping_costs: e.target.value})}
+        />
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleSubmit} className="btn-confirm">Confirm Sale</button>
+        </div>
+      </div>
     </div>
   );
 }
