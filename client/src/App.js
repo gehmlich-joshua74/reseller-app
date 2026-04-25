@@ -74,6 +74,11 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
     onSold(item);
   };
 
+  const handleRevert = async () => {
+    await axios.patch(`${API}/items/${item.id}/revert`);
+    refresh();
+  };
+
   const profit = item.status === 'sold' && item.sale_price
     ? (parseFloat(item.sale_price) - parseFloat(item.cost)).toFixed(2)
     : null;
@@ -83,7 +88,16 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
       <div className="item-name">{item.name}</div>
       <div className="item-meta">{item.category} · {item.location}</div>
       <div className="item-meta">Cost: ${item.cost}</div>
-      {profit && <div className="item-meta profit">Profit: ${profit}</div>}
+      {item.status === 'listed' && item.asking_price && (
+        <div className="item-meta">Asking: ${parseFloat(item.asking_price).toFixed(2)}</div>
+      )}
+      {item.status === 'listed' && item.platform && (
+        <div className="item-meta">Platform: {item.platform}</div>
+      )}
+      {item.status === 'sold' && item.sale_price && (
+        <div className="item-meta">Sold for: ${parseFloat(item.sale_price).toFixed(2)}</div>
+      )}
+      {profit && <div className="item-profit">Profit: ${profit}</div>}
       <div className={`item-status ${item.status}`}>{item.status.replace('_', ' ')}</div>
       {item.status === 'listed' && item.listed_at && (
         <div className="item-meta days-sitting">
@@ -96,6 +110,12 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
         )}
         {item.status === 'listed' && (
           <button onClick={handleSold} className="btn-sold">Mark as Sold</button>
+        )}
+        {item.status === 'listed' && (
+          <button onClick={handleRevert} className="btn-revert">Unlist</button>
+        )}
+        {item.status === 'sold' && (
+          <button onClick={handleRevert} className="btn-revert">Undo Sale</button>
         )}
         <button onClick={() => onEdit(item)} className="btn-edit">Edit</button>
         <button onClick={() => onDelete(item)} className="btn-delete">Delete</button>
@@ -111,6 +131,14 @@ function AddItemForm({ refresh, setView }) {
   });
 
   const handleSubmit = async () => {
+    if (!form.name.trim()) {
+      alert('Please enter an item name.');
+      return;
+    }
+    if (!form.cost && form.cost !== 0) {
+      alert('Please enter a cost. Use 0 if it was free.');
+      return;
+    }
     await axios.post(`${API}/items`, {
       ...form,
       added_by: '6e9219cc-fc42-4511-be63-98536283cc50'

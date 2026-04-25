@@ -241,6 +241,13 @@ body {
 
 .profit { color: #155724; font-weight: 600; }
 
+.item-profit {
+  font-size: 18px;
+  font-weight: 700;
+  color: #155724;
+  margin-top: 6px;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -415,4 +422,15 @@ body {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.75rem;
+}
+
+.btn-revert {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff3cd;
+  color: #856404;
+  margin-left: 4px;
 }

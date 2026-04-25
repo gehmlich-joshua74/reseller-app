@@ -81,4 +81,29 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
+// PATCH revert item status
+router.patch('/:id/revert', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await pool.query('SELECT status FROM items WHERE id = $1', [id]);
+    const currentStatus = item.rows[0].status;
+
+    if (currentStatus === 'sold') {
+      await pool.query(
+        `UPDATE listings SET sold_at = NULL, sale_price = NULL, platform_fees = NULL, shipping_costs = NULL WHERE item_id = $1`,
+        [id]
+      );
+      await pool.query(`UPDATE items SET status = 'listed' WHERE id = $1`, [id]);
+    } else if (currentStatus === 'listed') {
+      await pool.query(`DELETE FROM listings WHERE item_id = $1`, [id]);
+      await pool.query(`UPDATE items SET status = 'at_home' WHERE id = $1`, [id]);
+    }
+
+    const updated = await pool.query('SELECT * FROM items WHERE id = $1', [id]);
+    res.json(updated.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
