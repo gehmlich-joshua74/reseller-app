@@ -74,7 +74,7 @@ function App() {
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
       {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
       {view === 'dashboard' && <Dashboard />}
-      {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />}
+      {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} refresh={items} />}
     </div>
   );
 }
@@ -95,7 +95,7 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
   };
 
   const profit = item.status === 'sold' && item.sale_price
-    ? parseFloat(item.sale_price) - parseFloat(item.cost)
+    ? parseFloat(item.sale_price) - parseFloat(item.cost) - parseFloat(item.platform_fees || 0) - parseFloat(item.shipping_costs || 0)
     : null;
 
   return (
@@ -548,14 +548,18 @@ function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
   );
 }
 
-function ByPlatform({ onSold, onEdit, onDelete }) {
+function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
   const [items, setItems] = useState([]);
 
-  useEffect(() => {
+  const fetchItems = () => {
     axios.get(`${API}/items`).then(res => {
       setItems(res.data.filter(i => i.status === 'listed'));
     });
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, [refresh]);
 
   const platforms = [...new Set(items.map(i => i.platform).filter(Boolean))];
 
