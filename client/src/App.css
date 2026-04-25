@@ -507,3 +507,66 @@ body {
 .menu-dropdown button.danger:hover {
   background: #fde8e8;
 }
+
+@media (max-width: 768px) {
+  nav { padding: 1rem; }
+
+  .header {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .header nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .header button {
+    font-size: 12px;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .inventory {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .bucket {
+    min-height: auto;
+  }
+
+  .byplatform {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .platform-column {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .form-container {
+    margin: 1rem;
+    padding: 1.25rem;
+  }
+
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dash-table {
+    font-size: 12px;
+  }
+
+  .dash-table th,
+  .dash-table td {
+    padding: 6px 8px;
+  }
+}
