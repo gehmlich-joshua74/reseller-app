@@ -27,7 +27,8 @@ function App() {
         <h1>Reseller Dashboard</h1>
         <nav>
           <button onClick={() => setView('inventory')} className={view === 'inventory' ? 'active' : ''}>Inventory</button>
-          <button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
+          <button onClick={() => setView('dashboard')} className={view === 'dashboard' ? 'active' : ''}>Dashboard</button>
+<button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
         </nav>
       </header>
 
@@ -49,6 +50,7 @@ function App() {
       )}
 
       {view === 'add' && <AddItemForm refresh={fetchItems} setView={setView} />}
+      {view === 'dashboard' && <Dashboard />}
     </div>
   );
 }
@@ -142,6 +144,140 @@ function AddItemForm({ refresh, setView }) {
       <input placeholder="Cost ($)" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
       <input placeholder="Location (e.g. Basement)" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
       <button onClick={handleSubmit}>Add Item</button>
+    </div>
+  );
+}
+
+function Dashboard() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    axios.get(`${API}/analytics`).then(res => setData(res.data));
+  }, []);
+
+  if (!data) return <div style={{padding: '2rem'}}>Loading...</div>;
+
+  const { financials, byMarketplaceListed, byMarketplaceFinancials, byCategory, expiring } = data;
+
+  return (
+    <div className="dashboard">
+
+      <section className="dash-section">
+        <h2>Overall Performance</h2>
+        <div className="stat-grid">
+          <div className="stat-card">
+            <div className="stat-label">Gross Income</div>
+            <div className="stat-value">${parseFloat(financials.gross_income).toFixed(2)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Total Cost</div>
+            <div className="stat-value">${parseFloat(financials.total_cost).toFixed(2)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Fees & Shipping</div>
+            <div className="stat-value">${(parseFloat(financials.total_fees) + parseFloat(financials.total_shipping)).toFixed(2)}</div>
+          </div>
+          <div className="stat-card highlight">
+            <div className="stat-label">Net Profit</div>
+            <div className="stat-value">${parseFloat(financials.net_profit).toFixed(2)}</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="dash-section">
+        <h2>Expiring Listings <span className="section-sub">sorted by soonest</span></h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Platform</th>
+              <th>Asking Price</th>
+              <th>Days Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expiring.map(l => (
+              <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent' : ''}>
+                <td>{l.name}</td>
+                <td>{l.platform}</td>
+                <td>${parseFloat(l.asking_price).toFixed(2)}</td>
+                <td>{l.days_left} days</td>
+              </tr>
+            ))}
+            {expiring.length === 0 && <tr><td colSpan="4" style={{textAlign:'center', color:'#888'}}>No active listings</td></tr>}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="dash-section">
+        <h2>Currently Listed by Marketplace</h2>
+        <table className="dash-table">
+          <thead>
+            <tr><th>Platform</th><th>Active Listings</th></tr>
+          </thead>
+          <tbody>
+            {byMarketplaceListed.map(m => (
+              <tr key={m.platform}>
+                <td>{m.platform}</td>
+                <td>{m.listed_count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="dash-section">
+        <h2>Performance by Marketplace</h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Sold</th>
+              <th>Gross</th>
+              <th>Fees</th>
+              <th>Net Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {byMarketplaceFinancials.map(m => (
+              <tr key={m.platform}>
+                <td>{m.platform}</td>
+                <td>{m.total_sold}</td>
+                <td>${parseFloat(m.gross_income).toFixed(2)}</td>
+                <td>${(parseFloat(m.total_fees) + parseFloat(m.total_shipping)).toFixed(2)}</td>
+                <td className="profit">${parseFloat(m.net_profit).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="dash-section">
+        <h2>Performance by Category</h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Sold</th>
+              <th>Listed</th>
+              <th>At Home</th>
+              <th>Net Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {byCategory.map(c => (
+              <tr key={c.category}>
+                <td>{c.category}</td>
+                <td>{c.total_sold}</td>
+                <td>{c.total_listed}</td>
+                <td>{c.total_at_home}</td>
+                <td className="profit">${parseFloat(c.net_profit).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
     </div>
   );
 }

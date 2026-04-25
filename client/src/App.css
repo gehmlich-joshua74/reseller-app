@@ -154,3 +154,89 @@ body {
   color: #155724;
   font-weight: 600;
 }
+
+.dashboard {
+  padding: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.dash-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dash-section h2 {
+  font-size: 16px;
+  margin-bottom: 1rem;
+  color: #1a1a2e;
+}
+
+.section-sub {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.stat-card.highlight {
+  background: #1a1a2e;
+  color: white;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.stat-card.highlight .stat-label {
+  color: rgba(255,255,255,0.6);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dash-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  color: #888;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dash-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dash-table tr.urgent td {
+  color: #e94560;
+  font-weight: 600;
+}
+
+.profit { color: #155724; font-weight: 600; }
