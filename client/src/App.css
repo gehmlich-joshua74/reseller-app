@@ -340,3 +340,79 @@ body {
   cursor: pointer;
   font-size: 14px;
 }
+
+.byplatform {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.platform-column {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 320px;
+  flex-shrink: 0;
+}
+
+.platform-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.platform-header h2 {
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.platform-header span {
+  font-size: 12px;
+  color: #888;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.platform-card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.platform-card-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 0.75rem;
+  color: #1a1a2e;
+}
+
+.platform-card-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.platform-card-row span:first-child {
+  color: #888;
+}
+
+.platform-card-row span:last-child {
+  color: #333;
+  text-align: right;
+  max-width: 60%;
+}
+
+.platform-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}

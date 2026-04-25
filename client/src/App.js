@@ -31,6 +31,7 @@ function App() {
         <h1>Reseller Dashboard</h1>
         <nav>
           <button onClick={() => setView('inventory')} className={view === 'inventory' ? 'active' : ''}>Inventory</button>
+          <button onClick={() => setView('byplatform')} className={view === 'byplatform' ? 'active' : ''}>By Platform</button>
           <button onClick={() => setView('dashboard')} className={view === 'dashboard' ? 'active' : ''}>Dashboard</button>
 <button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
         </nav>
@@ -59,6 +60,7 @@ function App() {
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
       {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
       {view === 'dashboard' && <Dashboard />}
+      {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />}
     </div>
   );
 }
@@ -439,6 +441,55 @@ function DeleteModal({ item, onClose, refresh }) {
           <button onClick={handleDelete} className="btn-delete-confirm">Delete</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ByPlatform({ onSold, onEdit, onDelete }) {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${API}/items`).then(res => {
+      setItems(res.data.filter(i => i.status === 'listed'));
+    });
+  }, []);
+
+  const platforms = [...new Set(items.map(i => i.platform).filter(Boolean))];
+
+  if (items.length === 0) return (
+    <div style={{padding: '2rem', color: '#888'}}>No items currently listed on any platform.</div>
+  );
+
+  return (
+    <div className="byplatform">
+      {platforms.map(platform => (
+        <div key={platform} className="platform-column">
+          <div className="platform-header">
+            <h2>{platform}</h2>
+            <span>{items.filter(i => i.platform === platform).length} listed</span>
+          </div>
+          {items.filter(i => i.platform === platform).map(item => (
+            <div key={item.id} className="platform-card">
+              <div className="platform-card-name">{item.name}</div>
+              <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
+              <div className="platform-card-row"><span>Description</span><span>{item.description || '—'}</span></div>
+              <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>
+              <div className="platform-card-row"><span>Cost</span><span>${item.cost}</span></div>
+              <div className="platform-card-row"><span>Asking Price</span><span>${item.asking_price}</span></div>
+              <div className="platform-card-row"><span>Days Listed</span><span>{Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days</span></div>
+              <div className="platform-card-row">
+                <span>Photos Ready</span>
+                <span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span>
+              </div>
+              <div className="platform-card-actions">
+                <button onClick={() => onEdit(item)} className="btn-edit">Edit</button>
+                <button onClick={() => onDelete(item)} className="btn-delete">Delete</button>
+                <button onClick={() => onSold(item)} className="btn-sold">Mark as Sold</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
