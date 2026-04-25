@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Environment variables (passwords, secrets — never commit these)
+.env
+
+# Mac junk
+.DS_Store
+
+# Logs
+*.log
