@@ -5,9 +5,18 @@ const pool = require('../db');
 // GET all items
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM items ORDER BY created_at DESC'
-    );
+    const result = await pool.query(`
+      SELECT i.*, 
+        l.listed_at, 
+        l.platform,
+        l.asking_price,
+        l.sale_price,
+        l.platform_fees,
+        l.shipping_costs
+      FROM items i
+      LEFT JOIN listings l ON l.item_id = i.id
+      ORDER BY i.created_at DESC
+    `);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

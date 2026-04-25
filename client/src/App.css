@@ -127,3 +127,30 @@ body {
   font-size: 15px;
   cursor: pointer;
 }
+
+.item-actions { margin-top: 8px; }
+
+.btn-list {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #cce5ff;
+  color: #004085;
+}
+
+.btn-sold {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #d4edda;
+  color: #155724;
+}
+
+.profit {
+  color: #155724;
+  font-weight: 600;
+}
