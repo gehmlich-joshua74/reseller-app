@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const itemsRouter = require('./routes/items');
+const listingsRouter = require('./routes/listings');
 require('dotenv').config();
 
 const app = express();
@@ -9,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api/items', itemsRouter);
+app.use('/api/listings', listingsRouter);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Reseller API is running' });
