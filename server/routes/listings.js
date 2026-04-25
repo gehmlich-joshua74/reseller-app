@@ -60,4 +60,17 @@ router.patch('/:id/sold', async (req, res) => {
   }
 });
 
+// DELETE a listing
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const listing = await pool.query('SELECT item_id FROM listings WHERE id = $1', [id]);
+    await pool.query('DELETE FROM listings WHERE id = $1', [id]);
+    await pool.query('UPDATE items SET status = $1 WHERE id = $2', ['at_home', listing.rows[0].item_id]);
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -9,6 +9,8 @@ function App() {
   const [view, setView] = useState('inventory');
   const [listingItem, setListingItem] = useState(null);
   const [soldItem, setSoldItem] = useState(null);
+  const [editItem, setEditItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
 
   useEffect(() => {
     fetchItems();
@@ -38,15 +40,15 @@ function App() {
         <div className="inventory">
           <div className="bucket">
             <h2>At Home <span>{atHome.length}</span></h2>
-            {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} />)}
+            {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
           </div>
           <div className="bucket">
             <h2>Listed <span>{listed.length}</span></h2>
-            {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} />)}
+            {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
           </div>
           <div className="bucket">
             <h2>Sold <span>{sold.length}</span></h2>
-            {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} />)}
+            {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
           </div>
         </div>
       )}
@@ -54,12 +56,14 @@ function App() {
       {view === 'add' && <AddItemForm refresh={fetchItems} setView={setView} />}
       {listingItem && <ListingModal item={listingItem} onClose={() => setListingItem(null)} refresh={fetchItems} />}
       {soldItem && <SoldModal item={soldItem} onClose={() => setSoldItem(null)} refresh={fetchItems} />}
+      {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
+      {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
       {view === 'dashboard' && <Dashboard />}
     </div>
   );
 }
 
-function ItemCard({ item, refresh, onList, onSold }) {
+function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
   const handleList = () => {
     onList(item);
   };
@@ -91,6 +95,8 @@ function ItemCard({ item, refresh, onList, onSold }) {
         {item.status === 'listed' && (
           <button onClick={handleSold} className="btn-sold">Mark as Sold</button>
         )}
+        <button onClick={() => onEdit(item)} className="btn-edit">Edit</button>
+        <button onClick={() => onDelete(item)} className="btn-delete">Delete</button>
       </div>
     </div>
   );
@@ -370,6 +376,67 @@ function SoldModal({ item, onClose, refresh }) {
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleSubmit} className="btn-confirm">Confirm Sale</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditModal({ item, onClose, refresh }) {
+  const [form, setForm] = useState({
+    name: item.name || '',
+    description: item.description || '',
+    category: item.category || 'Electronics',
+    cost: item.cost || '',
+    location: item.location || ''
+  });
+
+  const handleSubmit = async () => {
+    await axios.patch(`${API}/items/${item.id}`, form);
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Edit Item</h2>
+        <input placeholder="Item name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+        <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+        <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+          <option>Electronics</option>
+          <option>Tools</option>
+          <option>Home & Kitchen</option>
+          <option>Clothing</option>
+          <option>Collectibles</option>
+          <option>Other</option>
+        </select>
+        <input placeholder="Cost ($)" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
+        <input placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleSubmit} className="btn-confirm">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteModal({ item, onClose, refresh }) {
+  const handleDelete = async () => {
+    await axios.delete(`${API}/items/${item.id}`);
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Delete "{item.name}"?</h2>
+        <p className="modal-sub">This will permanently delete the item and all its listings. This cannot be undone.</p>
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleDelete} className="btn-delete-confirm">Delete</button>
         </div>
       </div>
     </div>
