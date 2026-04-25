@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
         l.shipping_costs
       FROM items i
       LEFT JOIN listings l ON l.item_id = i.id
-      ORDER BY i.created_at DESC
+      ORDER BY i.updated_at DESC
     `);
     res.json(result.rows);
   } catch (err) {

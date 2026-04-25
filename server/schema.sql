@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS "items" (
   "cost"         DECIMAL,
   "location"     VARCHAR(255),
   "photos_ready" BOOLEAN DEFAULT false,
-  "created_at"   TIMESTAMP DEFAULT now()
+  "created_at"   TIMESTAMP DEFAULT now(),
+  "updated_at"   TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS "listings" (
@@ -30,3 +31,16 @@ CREATE TABLE IF NOT EXISTS "listings" (
   "platform_fees"  DECIMAL,
   "shipping_costs" DECIMAL
 );
+
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER items_updated_at
+BEFORE UPDATE ON items
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
