@@ -66,6 +66,7 @@ function App() {
 }
 
 function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const handleList = () => {
     onList(item);
   };
@@ -105,20 +106,27 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
         </div>
       )}
       <div className="item-actions">
-        {item.status === 'at_home' && (
-          <button onClick={handleList} className="btn-list">Mark as Listed</button>
-        )}
-        {item.status === 'listed' && (
-          <button onClick={handleSold} className="btn-sold">Mark as Sold</button>
-        )}
-        {item.status === 'listed' && (
-          <button onClick={handleRevert} className="btn-revert">Unlist</button>
-        )}
-        {item.status === 'sold' && (
-          <button onClick={handleRevert} className="btn-revert">Undo Sale</button>
-        )}
-        <button onClick={() => onEdit(item)} className="btn-edit">Edit</button>
-        <button onClick={() => onDelete(item)} className="btn-delete">Delete</button>
+        <div className="menu-wrapper">
+          <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
+          {menuOpen && (
+            <div className="menu-dropdown">
+              {item.status === 'at_home' && (
+                <button onClick={() => { handleList(); setMenuOpen(false); }}>Mark as Listed</button>
+              )}
+              {item.status === 'listed' && (
+                <button onClick={() => { handleSold(); setMenuOpen(false); }}>Mark as Sold</button>
+              )}
+              {item.status === 'listed' && (
+                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Unlist</button>
+              )}
+              {item.status === 'sold' && (
+                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Undo Sale</button>
+              )}
+              <button onClick={() => { onEdit(item); setMenuOpen(false); }}>Edit</button>
+              <button className="danger" onClick={() => { onDelete(item); setMenuOpen(false); }}>Delete</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
