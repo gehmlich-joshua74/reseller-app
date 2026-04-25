@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS "items" (
   "dimensions"   VARCHAR(255),
   "color"        VARCHAR(255),
   "condition"    VARCHAR(255),
-  "sku"          VARCHAR(255)
+  "sku"          VARCHAR(255),
+  "notes"        TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "listings" (

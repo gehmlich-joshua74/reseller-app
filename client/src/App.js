@@ -156,7 +156,7 @@ function AddItemForm({ refresh, setView }) {
   const [form, setForm] = useState({
     name: '', description: '', category: 'Electronics',
     cost: '', location: '', quantity: 1, brand: '',
-    model: '', dimensions: '', color: '', condition: '', sku: ''
+    model: '', dimensions: '', color: '', condition: '', sku: '', notes: ''
   });
 
   const handleSubmit = async () => {
@@ -205,6 +205,7 @@ function AddItemForm({ refresh, setView }) {
         <option>Poor</option>
       </select>
       <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
+      <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
       <button onClick={handleSubmit}>Add Item</button>
     </div>
   );
@@ -507,6 +508,7 @@ function EditModal({ item, onClose, refresh }) {
           <option>Poor</option>
         </select>
         <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
+        <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleSubmit} className="btn-confirm">Save Changes</button>
@@ -597,6 +599,7 @@ function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
               {item.color && <div className="platform-card-row"><span>Color</span><span>{item.color}</span></div>}
               {item.condition && <div className="platform-card-row"><span>Condition</span><span>{item.condition}</span></div>}
               {item.sku && <div className="platform-card-row"><span>SKU</span><span>{item.sku}</span></div>}
+              {item.notes && <div className="platform-card-row"><span>Notes</span><span>{item.notes}</span></div>}
               {item.quantity > 1 && <div className="platform-card-row"><span>Quantity</span><span>{item.quantity}</span></div>}
               <div className="platform-card-actions">
                 <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />
