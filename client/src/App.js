@@ -106,7 +106,7 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
         </div>
       )}
       <div className="item-actions">
-        <div className="menu-wrapper">
+        <div className="menu-wrapper" onBlur={() => setTimeout(() => setMenuOpen(false), 150)}>
           <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
           {menuOpen && (
             <div className="menu-dropdown">
