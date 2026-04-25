@@ -54,10 +54,26 @@ body {
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #888;
   margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+}
+
+.bucket.at-home h2 {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.bucket.listed h2 {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.bucket.sold h2 {
+  background: #d4edda;
+  color: #155724;
 }
 
 .bucket h2 span {

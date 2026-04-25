@@ -39,15 +39,15 @@ function App() {
 
       {view === 'inventory' && (
         <div className="inventory">
-          <div className="bucket">
+          <div className="bucket at-home">
             <h2>At Home <span>{atHome.length}</span></h2>
             {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
           </div>
-          <div className="bucket">
+          <div className="bucket listed">
             <h2>Listed <span>{listed.length}</span></h2>
             {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
           </div>
-          <div className="bucket">
+          <div className="bucket sold">
             <h2>Sold <span>{sold.length}</span></h2>
             {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
           </div>
