@@ -487,6 +487,23 @@ function DeleteModal({ item, onClose, refresh }) {
   );
 }
 
+function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <div className="menu-wrapper" onBlur={() => setTimeout(() => setMenuOpen(false), 150)}>
+      <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
+      {menuOpen && (
+        <div className="menu-dropdown">
+          <button onClick={() => { onSold(item); setMenuOpen(false); }}>Mark as Sold</button>
+          <button onClick={() => { onEdit(item); setMenuOpen(false); }}>Edit</button>
+          <button className="danger" onClick={() => { onDelete(item); setMenuOpen(false); }}>Delete</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ByPlatform({ onSold, onEdit, onDelete }) {
   const [items, setItems] = useState([]);
 
@@ -524,9 +541,7 @@ function ByPlatform({ onSold, onEdit, onDelete }) {
                 <span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span>
               </div>
               <div className="platform-card-actions">
-                <button onClick={() => onEdit(item)} className="btn-edit">Edit</button>
-                <button onClick={() => onDelete(item)} className="btn-delete">Delete</button>
-                <button onClick={() => onSold(item)} className="btn-sold">Mark as Sold</button>
+                <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />
               </div>
             </div>
           ))}
