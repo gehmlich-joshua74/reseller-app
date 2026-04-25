@@ -7,7 +7,8 @@ router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT i.*, 
-        l.listed_at, 
+        l.listed_at,
+        l.sold_at,
         l.platform,
         l.asking_price,
         l.sale_price,
@@ -101,6 +102,20 @@ router.patch('/:id/revert', async (req, res) => {
 
     const updated = await pool.query('SELECT * FROM items WHERE id = $1', [id]);
     res.json(updated.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH toggle photos ready
+router.patch('/:id/photos', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE items SET photos_ready = NOT photos_ready WHERE id = $1 RETURNING *`,
+      [id]
+    );
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

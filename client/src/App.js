@@ -112,8 +112,14 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
       {item.status === 'sold' && item.sale_price && (
         <div className="item-meta">Sold for: {formatCurrency(item.sale_price)}</div>
       )}
+      {item.status === 'sold' && item.sold_at && (
+        <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+      )}
       {profit && <div className="item-profit">Profit: {formatCurrency(profit)}</div>}
       <div className={`item-status ${item.status}`}>{item.status.replace('_', ' ')}</div>
+      <div className="photos-toggle" onClick={async () => { await axios.patch(`${API}/items/${item.id}/photos`); refresh(); }}>
+        {item.photos_ready ? '📷 Photos ready' : '📷 No photos yet'}
+      </div>
       {item.status === 'listed' && item.listed_at && (
         <div className="item-meta days-sitting">
           {Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days listed
