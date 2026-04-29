@@ -1,0 +1,2390 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+client/
+  public/
+    favicon.ico
+    index.html
+    logo192.png
+    logo512.png
+    manifest.json
+    robots.txt
+  src/
+    App.css
+    App.js
+    App.test.js
+    index.css
+    index.js
+    logo.svg
+    reportWebVitals.js
+    setupTests.js
+  .gitignore
+  package.json
+  README.md
+server/
+  routes/
+    analytics.js
+    backup.js
+    items.js
+    listings.js
+  db.js
+  index.js
+  package.json
+  schema.sql
+.gitignore
+package.json
+README.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="client/public/index.html">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
+</html>
+</file>
+
+<file path="client/public/manifest.json">
+{
+  "short_name": "React App",
+  "name": "Create React App Sample",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
+</file>
+
+<file path="client/public/robots.txt">
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow:
+</file>
+
+<file path="client/src/App.test.js">
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+</file>
+
+<file path="client/src/index.css">
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+</file>
+
+<file path="client/src/index.js">
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+</file>
+
+<file path="client/src/logo.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 595.3"><g fill="#61DAFB"><path d="M666.3 296.5c0-32.5-40.7-63.3-103.1-82.4 14.4-63.6 8-114.2-20.2-130.4-6.5-3.8-14.1-5.6-22.4-5.6v22.3c4.6 0 8.3.9 11.4 2.6 13.6 7.8 19.5 37.5 14.9 75.7-1.1 9.4-2.9 19.3-5.1 29.4-19.6-4.8-41-8.5-63.5-10.9-13.5-18.5-27.5-35.3-41.6-50 32.6-30.3 63.2-46.9 84-46.9V78c-27.5 0-63.5 19.6-99.9 53.6-36.4-33.8-72.4-53.2-99.9-53.2v22.3c20.7 0 51.4 16.5 84 46.6-14 14.7-28 31.4-41.3 49.9-22.6 2.4-44 6.1-63.6 11-2.3-10-4-19.7-5.2-29-4.7-38.2 1.1-67.9 14.6-75.8 3-1.8 6.9-2.6 11.5-2.6V78.5c-8.4 0-16 1.8-22.6 5.6-28.1 16.2-34.4 66.7-19.9 130.1-62.2 19.2-102.7 49.9-102.7 82.3 0 32.5 40.7 63.3 103.1 82.4-14.4 63.6-8 114.2 20.2 130.4 6.5 3.8 14.1 5.6 22.5 5.6 27.5 0 63.5-19.6 99.9-53.6 36.4 33.8 72.4 53.2 99.9 53.2 8.4 0 16-1.8 22.6-5.6 28.1-16.2 34.4-66.7 19.9-130.1 62-19.1 102.5-49.9 102.5-82.3zm-130.2-66.7c-3.7 12.9-8.3 26.2-13.5 39.5-4.1-8-8.4-16-13.1-24-4.6-8-9.5-15.8-14.4-23.4 14.2 2.1 27.9 4.7 41 7.9zm-45.8 106.5c-7.8 13.5-15.8 26.3-24.1 38.2-14.9 1.3-30 2-45.2 2-15.1 0-30.2-.7-45-1.9-8.3-11.9-16.4-24.6-24.2-38-7.6-13.1-14.5-26.4-20.8-39.8 6.2-13.4 13.2-26.8 20.7-39.9 7.8-13.5 15.8-26.3 24.1-38.2 14.9-1.3 30-2 45.2-2 15.1 0 30.2.7 45 1.9 8.3 11.9 16.4 24.6 24.2 38 7.6 13.1 14.5 26.4 20.8 39.8-6.3 13.4-13.2 26.8-20.7 39.9zm32.3-13c5.4 13.4 10 26.8 13.8 39.8-13.1 3.2-26.9 5.9-41.2 8 4.9-7.7 9.8-15.6 14.4-23.7 4.6-8 8.9-16.1 13-24.1zM421.2 430c-9.3-9.6-18.6-20.3-27.8-32 9 .4 18.2.7 27.5.7 9.4 0 18.7-.2 27.8-.7-9 11.7-18.3 22.4-27.5 32zm-74.4-58.9c-14.2-2.1-27.9-4.7-41-7.9 3.7-12.9 8.3-26.2 13.5-39.5 4.1 8 8.4 16 13.1 24 4.7 8 9.5 15.8 14.4 23.4zM420.7 163c9.3 9.6 18.6 20.3 27.8 32-9-.4-18.2-.7-27.5-.7-9.4 0-18.7.2-27.8.7 9-11.7 18.3-22.4 27.5-32zm-74 58.9c-4.9 7.7-9.8 15.6-14.4 23.7-4.6 8-8.9 16-13 24-5.4-13.4-10-26.8-13.8-39.8 13.1-3.1 26.9-5.8 41.2-7.9zm-90.5 125.2c-35.4-15.1-58.3-34.9-58.3-50.6 0-15.7 22.9-35.6 58.3-50.6 8.6-3.7 18-7 27.7-10.1 5.7 19.6 13.2 40 22.5 60.9-9.2 20.8-16.6 41.1-22.2 60.6-9.9-3.1-19.3-6.5-28-10.2zM310 490c-13.6-7.8-19.5-37.5-14.9-75.7 1.1-9.4 2.9-19.3 5.1-29.4 19.6 4.8 41 8.5 63.5 10.9 13.5 18.5 27.5 35.3 41.6 50-32.6 30.3-63.2 46.9-84 46.9-4.5-.1-8.3-1-11.3-2.7zm237.2-76.2c4.7 38.2-1.1 67.9-14.6 75.8-3 1.8-6.9 2.6-11.5 2.6-20.7 0-51.4-16.5-84-46.6 14-14.7 28-31.4 41.3-49.9 22.6-2.4 44-6.1 63.6-11 2.3 10.1 4.1 19.8 5.2 29.1zm38.5-66.7c-8.6 3.7-18 7-27.7 10.1-5.7-19.6-13.2-40-22.5-60.9 9.2-20.8 16.6-41.1 22.2-60.6 9.9 3.1 19.3 6.5 28.1 10.2 35.4 15.1 58.3 34.9 58.3 50.6-.1 15.7-23 35.6-58.4 50.6zM320.8 78.4z"/><circle cx="420.9" cy="296.5" r="45.7"/><path d="M520.5 78.1z"/></g></svg>
+</file>
+
+<file path="client/src/reportWebVitals.js">
+const reportWebVitals = onPerfEntry => {
+  if (onPerfEntry && onPerfEntry instanceof Function) {
+    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(onPerfEntry);
+      getFID(onPerfEntry);
+      getFCP(onPerfEntry);
+      getLCP(onPerfEntry);
+      getTTFB(onPerfEntry);
+    });
+  }
+};
+
+export default reportWebVitals;
+</file>
+
+<file path="client/src/setupTests.js">
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';
+</file>
+
+<file path="client/.gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+</file>
+
+<file path="client/package.json">
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.15.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+</file>
+
+<file path="client/README.md">
+# Getting Started with Create React App
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### `npm start`
+
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
+
+### `npm test`
+
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+### `npm run build`
+
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
+
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run eject`
+
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+
+## Learn More
+
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+</file>
+
+<file path="server/routes/analytics.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+const PLATFORM_EXPIRY_DAYS = {
+  'eBay': 30,
+  'Facebook Marketplace': 7,
+  'OfferUp': 30,
+  'Mercari': 60,
+  'Poshmark': 60,
+};
+
+router.get('/', async (req, res) => {
+  try {
+    // Overall financials
+    const financials = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE i.status = 'sold') as total_sold,
+        COALESCE(SUM(l.sale_price) FILTER (WHERE i.status = 'sold'), 0) as gross_income,
+        COALESCE(SUM(i.cost) FILTER (WHERE i.status = 'sold'), 0) as total_cost,
+        COALESCE(SUM(l.platform_fees) FILTER (WHERE i.status = 'sold'), 0) as total_fees,
+        COALESCE(SUM(l.shipping_costs) FILTER (WHERE i.status = 'sold'), 0) as total_shipping,
+        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)) FILTER (WHERE i.status = 'sold'), 0) as net_profit
+      FROM items i
+      LEFT JOIN listings l ON l.item_id = i.id
+    `);
+
+    // By marketplace — listed counts
+    const byMarketplaceListed = await pool.query(`
+      SELECT platform, COUNT(*) as listed_count
+      FROM listings
+      WHERE sold_at IS NULL
+      GROUP BY platform
+      ORDER BY listed_count DESC
+    `);
+
+    // By marketplace — financials
+    const byMarketplaceFinancials = await pool.query(`
+      SELECT
+        l.platform,
+        COUNT(*) as total_sold,
+        COALESCE(SUM(l.sale_price), 0) as gross_income,
+        COALESCE(SUM(i.cost), 0) as total_cost,
+        COALESCE(SUM(l.platform_fees), 0) as total_fees,
+        COALESCE(SUM(l.shipping_costs), 0) as total_shipping,
+        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)), 0) as net_profit
+      FROM listings l
+      JOIN items i ON i.id = l.item_id
+      WHERE l.sold_at IS NOT NULL
+      GROUP BY l.platform
+      ORDER BY net_profit DESC
+    `);
+
+    // By category
+    const byCategory = await pool.query(`
+      SELECT
+        i.category,
+        COUNT(*) FILTER (WHERE i.status = 'sold') as total_sold,
+        COUNT(*) FILTER (WHERE i.status = 'listed') as total_listed,
+        COUNT(*) FILTER (WHERE i.status = 'at_home') as total_at_home,
+        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)) FILTER (WHERE i.status = 'sold'), 0) as net_profit
+      FROM items i
+      LEFT JOIN listings l ON l.item_id = i.id
+      GROUP BY i.category
+      ORDER BY total_sold DESC
+    `);
+
+    // Returns
+    const returns = await pool.query(`
+      SELECT
+        l.platform,
+        i.category,
+        COUNT(*) as return_count
+      FROM listings l
+      JOIN items i ON i.id = l.item_id
+      WHERE l.sold_at IS NULL AND l.listed_at < now() - interval '90 days'
+      GROUP BY l.platform, i.category
+      ORDER BY return_count DESC
+    `);
+
+    // Expiring listings
+    const activeListing = await pool.query(`
+      SELECT i.name, i.category, l.platform, l.listed_at, l.asking_price, l.id as listing_id
+      FROM listings l
+      JOIN items i ON i.id = l.item_id
+      WHERE l.sold_at IS NULL
+      ORDER BY l.listed_at ASC
+    `);
+
+    const expiring = activeListing.rows.map(listing => {
+      const days = PLATFORM_EXPIRY_DAYS[listing.platform] || 30;
+      const listedAt = new Date(listing.listed_at);
+      const expiresAt = new Date(listedAt.getTime() + days * 24 * 60 * 60 * 1000);
+      const daysLeft = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));
+      return { ...listing, expires_at: expiresAt, days_left: daysLeft };
+    }).sort((a, b) => a.days_left - b.days_left);
+
+    res.json({
+      financials: financials.rows[0],
+      byMarketplaceListed: byMarketplaceListed.rows,
+      byMarketplaceFinancials: byMarketplaceFinancials.rows,
+      byCategory: byCategory.rows,
+      returns: returns.rows,
+      expiring
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+</file>
+
+<file path="server/routes/backup.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+// GET full backup
+router.get('/', async (req, res) => {
+  try {
+    const users = await pool.query('SELECT * FROM users');
+    const items = await pool.query('SELECT * FROM items');
+    const listings = await pool.query('SELECT * FROM listings');
+
+    const backup = {
+      version: '1.0',
+      exported_at: new Date().toISOString(),
+      data: {
+        users: users.rows,
+        items: items.rows,
+        listings: listings.rows
+      }
+    };
+
+    res.setHeader('Content-Disposition', `attachment; filename=reseller-backup-${new Date().toISOString().split('T')[0]}.json`);
+    res.setHeader('Content-Type', 'application/json');
+    res.json(backup);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST restore from backup
+router.post('/restore', async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    if (!data || !data.users || !data.items || !data.listings) {
+      return res.status(400).json({ error: 'Invalid backup file format.' });
+    }
+
+    // Wipe existing data in correct order
+    await pool.query('DELETE FROM listings');
+    await pool.query('DELETE FROM items');
+    await pool.query('DELETE FROM users');
+
+    // Restore users
+    for (const user of data.users) {
+      await pool.query(
+        `INSERT INTO users (id, name, email, password_hash, created_at)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO NOTHING`,
+        [user.id, user.name, user.email, user.password_hash, user.created_at]
+      );
+    }
+
+    // Restore items
+    for (const item of data.items) {
+      await pool.query(
+        `INSERT INTO items (id, added_by, name, description, category, status, cost, location, photos_ready, created_at, updated_at, quantity, brand, model, dimensions, color, condition, sku, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+         ON CONFLICT (id) DO NOTHING`,
+        [item.id, item.added_by, item.name, item.description, item.category, item.status, item.cost, item.location, item.photos_ready, item.created_at, item.updated_at, item.quantity, item.brand, item.model, item.dimensions, item.color, item.condition, item.sku, item.notes]
+      );
+    }
+
+    // Restore listings
+    for (const listing of data.listings) {
+      await pool.query(
+        `INSERT INTO listings (id, item_id, platform, asking_price, listed_at, sold_at, sale_price, platform_fees, shipping_costs, listing_url, tracking_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         ON CONFLICT (id) DO NOTHING`,
+        [listing.id, listing.item_id, listing.platform, listing.asking_price, listing.listed_at, listing.sold_at, listing.sale_price, listing.platform_fees, listing.shipping_costs, listing.listing_url, listing.tracking_url]
+      );
+    }
+
+    res.json({ success: true, message: 'Database restored successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+</file>
+
+<file path="server/db.js">
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+});
+
+module.exports = pool;
+</file>
+
+<file path="server/package.json">
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
+</file>
+
+<file path=".gitignore">
+# Dependencies
+node_modules/
+
+# Environment variables (passwords, secrets — never commit these)
+.env
+
+# Mac junk
+.DS_Store
+
+# Logs
+*.log
+</file>
+
+<file path="package.json">
+{
+  "dependencies": {
+    "axios": "^1.15.2"
+  }
+}
+</file>
+
+<file path="README.md">
+# Reseller Dashboard
+
+A full-stack inventory and analytics platform built for cross-platform resellers.
+
+I built this for me and my wife after we started a reselling business and found that existing tools were either too expensive or didn't show the data that actually mattered to us. Rather than pay for something that didn't fit our workflow, I built it myself.
+
+## What it does
+
+- **Inventory tracking** — items move through three stages: At Home → Listed → Sold
+- **Cross-platform listing management** — track what's listed on eBay, Mercari, Facebook Marketplace, and more
+- **Expiring listings** — automatically calculates when each platform listing expires based on platform policies, sorted by most urgent
+- **Analytics dashboard** — gross income, total costs, fees, and net profit at a glance
+- **Marketplace breakdown** — see which platforms are generating the most profit
+- **Category breakdown** — identify which types of items sell best so you can source smarter
+- **Days listed tracking** — see how long each item has been sitting unsold
+
+## Tech stack
+
+- **Frontend** — React
+- **Backend** — Node.js + Express REST API
+- **Database** — PostgreSQL
+- **Other** — Axios, dotenv, nodemon, CORS
+
+## Running locally
+
+### Prerequisites
+- Node.js
+- PostgreSQL
+
+### Setup
+
+1. Clone the repo
+```bash
+   git clone https://github.com/gehmlich-joshua74/reseller-app.git
+   cd reseller-app
+```
+
+2. Set up the database
+```bash
+   psql postgres
+   CREATE DATABASE reseller_db;
+   \c reseller_db
+```
+   Then run the schema from `server/schema.sql`
+
+3. Configure environment variables
+```bash
+   cd server
+   cp .env.example .env
+```
+   Fill in your PostgreSQL credentials in `.env`
+
+4. Install dependencies and start the server
+```bash
+   cd server
+   npm install
+   npm run dev
+```
+
+5. Install dependencies and start the client
+```bash
+   cd client
+   npm install
+   npm start
+```
+
+6. Visit `http://localhost:3000`
+
+## Roadmap
+
+- [ ] User authentication so multiple family members can have their own accounts
+- [ ] Modal forms to replace browser prompts
+- [ ] Mobile-optimized UI
+- [ ] Deploy to web so it's accessible from any device
+- [ ] Price drop suggestions based on days listed
+- [ ] Photo upload support
+</file>
+
+<file path="server/routes/listings.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+// GET all listings for an item
+router.get('/:item_id', async (req, res) => {
+  try {
+    const { item_id } = req.params;
+    const result = await pool.query(
+      'SELECT * FROM listings WHERE item_id = $1 ORDER BY listed_at DESC',
+      [item_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST a new listing
+router.post('/', async (req, res) => {
+  try {
+    const { item_id, platform, asking_price, listing_url } = req.body;
+    const result = await pool.query(
+      `INSERT INTO listings (item_id, platform, asking_price, listing_url)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [item_id, platform, asking_price, listing_url]
+    );
+    // update item status to listed
+    await pool.query(
+      'UPDATE items SET status = $1 WHERE id = $2',
+      ['listed', item_id]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH mark a listing as sold
+router.patch('/:id/sold', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { sale_price, platform_fees, shipping_costs, item_id, tracking_url } = req.body;
+    const result = await pool.query(
+      `UPDATE listings 
+       SET sold_at = now(), sale_price = $1, platform_fees = $2, shipping_costs = $3, tracking_url = $4
+       WHERE id = $5
+       RETURNING *`,
+      [sale_price, platform_fees, shipping_costs, tracking_url, id]
+    );
+    // update item status to sold
+    await pool.query(
+      'UPDATE items SET status = $1 WHERE id = $2',
+      ['sold', item_id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE a listing
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const listing = await pool.query('SELECT item_id FROM listings WHERE id = $1', [id]);
+    await pool.query('DELETE FROM listings WHERE id = $1', [id]);
+    await pool.query('UPDATE items SET status = $1 WHERE id = $2', ['at_home', listing.rows[0].item_id]);
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+</file>
+
+<file path="server/index.js">
+const express = require('express');
+const cors = require('cors');
+const pool = require('./db');
+const itemsRouter = require('./routes/items');
+const listingsRouter = require('./routes/listings');
+const analyticsRouter = require('./routes/analytics');
+const backupRouter = require('./routes/backup');
+require('dotenv').config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use('/api/items', itemsRouter);
+app.use('/api/listings', listingsRouter);
+app.use('/api/analytics', analyticsRouter);
+app.use('/api/backup', backupRouter);
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Reseller API is running' });
+});
+
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    res.json({ connected: true, time: result.rows[0].now });
+  } catch (err) {
+    res.json({ connected: false, error: err.message });
+  }
+});
+
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
+</file>
+
+<file path="server/schema.sql">
+CREATE TABLE IF NOT EXISTS "users" (
+  "id"            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "name"          VARCHAR(255),
+  "email"         VARCHAR(255) UNIQUE,
+  "password_hash" VARCHAR(255),
+  "created_at"    TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS "items" (
+  "id"           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "added_by"     UUID NOT NULL REFERENCES "users"("id"),
+  "name"         VARCHAR(255),
+  "description"  TEXT,
+  "category"     VARCHAR(255),
+  "status"       VARCHAR(255) DEFAULT 'at_home',
+  "cost"         DECIMAL,
+  "location"     VARCHAR(255),
+  "photos_ready" BOOLEAN DEFAULT false,
+  "created_at"   TIMESTAMP DEFAULT now(),
+  "updated_at"   TIMESTAMP DEFAULT now(),
+  "quantity"     INTEGER DEFAULT 1,
+  "brand"        VARCHAR(255),
+  "model"        VARCHAR(255),
+  "dimensions"   VARCHAR(255),
+  "color"        VARCHAR(255),
+  "condition"    VARCHAR(255),
+  "sku"          VARCHAR(255),
+  "notes"        TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "listings" (
+  "id"             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "item_id"        UUID NOT NULL REFERENCES "items"("id"),
+  "platform"       VARCHAR(255),
+  "asking_price"   DECIMAL,
+  "listed_at"      TIMESTAMP DEFAULT now(),
+  "sold_at"        TIMESTAMP,
+  "sale_price"     DECIMAL,
+  "platform_fees"  DECIMAL,
+  "shipping_costs" DECIMAL,
+  "listing_url"    TEXT,
+  "tracking_url"   TEXT
+);
+
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER items_updated_at
+BEFORE UPDATE ON items
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
+</file>
+
+<file path="server/routes/items.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+// GET all items
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT i.*, 
+        l.listed_at,
+        l.sold_at,
+        l.platform,
+        l.asking_price,
+        l.sale_price,
+        l.platform_fees,
+        l.shipping_costs,
+        l.listing_url,
+        l.tracking_url
+      FROM items i
+      LEFT JOIN listings l ON l.item_id = i.id
+      ORDER BY i.updated_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST a new item
+router.post('/', async (req, res) => {
+  try {
+    const { added_by, name, description, category, cost, location, quantity, brand, model, dimensions, color, condition, sku, notes } = req.body;
+    const result = await pool.query(
+      `INSERT INTO items (added_by, name, description, category, cost, location, quantity, brand, model, dimensions, color, condition, sku, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       RETURNING *`,
+      [added_by, name, description, category, cost, location, quantity || 1, brand, model, dimensions, color, condition, sku, notes]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH update item status
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await pool.query(
+      `UPDATE items SET status = $1 WHERE id = $2 RETURNING *`,
+      [status, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE an item
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM listings WHERE item_id = $1', [id]);
+    await pool.query('DELETE FROM items WHERE id = $1', [id]);
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH edit an item
+router.patch('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, category, cost, location, quantity, brand, model, dimensions, color, condition, sku, notes } = req.body;
+    const result = await pool.query(
+      `UPDATE items SET name=$1, description=$2, category=$3, cost=$4, location=$5, quantity=$6, brand=$7, model=$8, dimensions=$9, color=$10, condition=$11, sku=$12, notes=$13 WHERE id=$14 RETURNING *`,
+      [name, description, category, cost, location, quantity || 1, brand, model, dimensions, color, condition, sku, notes, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH revert item status
+router.patch('/:id/revert', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await pool.query('SELECT status FROM items WHERE id = $1', [id]);
+    const currentStatus = item.rows[0].status;
+
+    if (currentStatus === 'sold') {
+      await pool.query(
+        `UPDATE listings SET sold_at = NULL, sale_price = NULL, platform_fees = NULL, shipping_costs = NULL WHERE item_id = $1`,
+        [id]
+      );
+      await pool.query(`UPDATE items SET status = 'listed' WHERE id = $1`, [id]);
+    } else if (currentStatus === 'listed') {
+      await pool.query(`DELETE FROM listings WHERE item_id = $1`, [id]);
+      await pool.query(`UPDATE items SET status = 'at_home' WHERE id = $1`, [id]);
+    }
+
+    const updated = await pool.query('SELECT * FROM items WHERE id = $1', [id]);
+    res.json(updated.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH toggle photos ready
+router.patch('/:id/photos', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE items SET photos_ready = NOT photos_ready WHERE id = $1 RETURNING *`,
+      [id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+</file>
+
+<file path="client/src/App.css">
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.app { min-height: 100vh; }
+
+.header {
+  background: #1a1a2e;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 { font-size: 1.25rem; }
+
+.header nav { display: flex; gap: 0.75rem; }
+
+.header button {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.header button.active {
+  background: #e94560;
+  border-color: #e94560;
+}
+
+.inventory {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.bucket {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 400px;
+}
+
+.bucket h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+}
+
+.bucket.at-home h2 {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.bucket.listed h2 {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.bucket.sold h2 {
+  background: #d4edda;
+  color: #155724;
+}
+
+.bucket h2 span {
+  background: #f0f0f0;
+  border-radius: 99px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.item-card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.item-name { font-weight: 600; margin-bottom: 4px; }
+
+.item-meta { font-size: 13px; color: #888; margin-bottom: 2px; }
+
+.item-status {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.item-status.at_home { background: #fff3cd; color: #856404; }
+.item-status.listed { background: #cce5ff; color: #004085; }
+.item-status.sold { background: #d4edda; color: #155724; }
+
+.form-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-container h2 { margin-bottom: 0.5rem; }
+
+.form-container input,
+.form-container textarea,
+.form-container select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.form-container textarea { height: 80px; resize: vertical; }
+
+.form-container button {
+  background: #1a1a2e;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.item-actions { margin-top: 8px; }
+
+.btn-list {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #cce5ff;
+  color: #004085;
+}
+
+.btn-sold {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #d4edda;
+  color: #155724;
+}
+
+.profit {
+  color: #155724;
+  font-weight: 600;
+}
+
+.dashboard {
+  padding: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.dash-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dash-section h2 {
+  font-size: 16px;
+  margin-bottom: 1rem;
+  color: #1a1a2e;
+}
+
+.section-sub {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.stat-card.highlight {
+  background: #1a1a2e;
+  color: white;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.stat-card.highlight .stat-label {
+  color: rgba(255,255,255,0.6);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dash-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  color: #888;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dash-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dash-table tr.urgent td {
+  color: #e94560;
+  font-weight: 600;
+}
+
+.profit { color: #155724; font-weight: 600; }
+
+.item-profit {
+  font-size: 18px;
+  font-weight: 700;
+  color: #155724;
+  margin-top: 6px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h2 { font-size: 18px; }
+
+.modal-sub {
+  color: #888;
+  font-size: 14px;
+  margin-top: -0.5rem;
+}
+
+.modal select,
+.modal input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.modal-error {
+  color: #e94560;
+  font-size: 13px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 0.6rem 1.25rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-confirm {
+  padding: 0.6rem 1.25rem;
+  background: #1a1a2e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-edit {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  background: white;
+  color: #333;
+  margin-left: 4px;
+}
+
+.btn-delete {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fde8e8;
+  color: #a32d2d;
+  margin-left: 4px;
+}
+
+.btn-delete-confirm {
+  padding: 0.6rem 1.25rem;
+  background: #a32d2d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.byplatform {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.platform-column {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 320px;
+  flex-shrink: 0;
+}
+
+.platform-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.platform-header h2 {
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.platform-header span {
+  font-size: 12px;
+  color: #888;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.platform-card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.platform-card-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 0.75rem;
+  color: #1a1a2e;
+}
+
+.platform-card-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.platform-card-row span:first-child {
+  color: #888;
+}
+
+.platform-card-row span:last-child {
+  color: #333;
+  text-align: right;
+  max-width: 60%;
+}
+
+.platform-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn-revert {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #fff3cd;
+  color: #856404;
+  margin-left: 4px;
+}
+
+.menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-menu {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #333;
+  line-height: 1;
+}
+
+.btn-menu:hover {
+  background: #e0e0e0;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.menu-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: #333;
+}
+
+.menu-dropdown button:hover {
+  background: #f5f5f5;
+}
+
+.menu-dropdown button.danger {
+  color: #a32d2d;
+}
+
+.menu-dropdown button.danger:hover {
+  background: #fde8e8;
+}
+
+@media (max-width: 768px) {
+  nav { padding: 1rem; }
+
+  .header {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .header nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .header button {
+    font-size: 12px;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .inventory {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .bucket {
+    min-height: auto;
+  }
+
+  .byplatform {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .platform-column {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .form-container {
+    margin: 1rem;
+    padding: 1.25rem;
+  }
+
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dash-table {
+    font-size: 12px;
+  }
+
+  .dash-table th,
+  .dash-table td {
+    padding: 6px 8px;
+  }
+}
+
+.inventory-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-tabs {
+  display: none;
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: #f0f0f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #888;
+}
+
+.mobile-tab span {
+  background: rgba(0,0,0,0.1);
+  border-radius: 99px;
+  padding: 2px 7px;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.mobile-tab.active-at-home {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.mobile-tab.active-listed {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.mobile-tab.active-sold {
+  background: #d4edda;
+  color: #155724;
+}
+
+@media (max-width: 768px) {
+  .mobile-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1rem;
+  }
+
+  .bucket-hidden {
+    display: none;
+  }
+
+  .inventory {
+    grid-template-columns: 1fr;
+  }
+}
+
+.photos-toggle {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+.photos-toggle:hover { opacity: 0.7; }
+
+.card-link {
+  color: #004085;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-backup {
+  padding: 0.6rem 1.25rem;
+  background: #1a1a2e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-restore {
+  padding: 0.6rem 1.25rem;
+  background: white;
+  color: #1a1a2e;
+  border: 1px solid #1a1a2e;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-backup:hover { opacity: 0.85; }
+.btn-restore:hover { background: #f5f5f5; }
+
+.backup-note {
+  font-size: 12px;
+  color: #888;
+}
+</file>
+
+<file path="client/src/App.js">
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './App.css';
+
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const formatCurrency = (amount) => {
+  return parseFloat(amount || 0).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  });
+};
+
+function App() {
+  const [items, setItems] = useState([]);
+  const [view, setView] = useState('inventory');
+  const [listingItem, setListingItem] = useState(null);
+  const [soldItem, setSoldItem] = useState(null);
+  const [editItem, setEditItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [activeBucket, setActiveBucket] = useState('at_home');
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    const res = await axios.get(`${API}/items`);
+    setItems(res.data);
+  };
+
+  const atHome = items.filter(i => i.status === 'at_home');
+  const listed = items.filter(i => i.status === 'listed');
+  const sold = items.filter(i => i.status === 'sold');
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>Reseller Dashboard</h1>
+        <nav>
+          <button onClick={() => setView('inventory')} className={view === 'inventory' ? 'active' : ''}>Inventory</button>
+          <button onClick={() => setView('byplatform')} className={view === 'byplatform' ? 'active' : ''}>By Platform</button>
+          <button onClick={() => setView('dashboard')} className={view === 'dashboard' ? 'active' : ''}>Dashboard</button>
+<button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
+        </nav>
+      </header>
+
+      {view === 'inventory' && (
+        <div className="inventory-wrapper">
+          <div className="mobile-tabs">
+            <button onClick={() => setActiveBucket('at_home')} className={activeBucket === 'at_home' ? 'mobile-tab active-at-home' : 'mobile-tab'}>At Home <span>{atHome.length}</span></button>
+            <button onClick={() => setActiveBucket('listed')} className={activeBucket === 'listed' ? 'mobile-tab active-listed' : 'mobile-tab'}>Listed <span>{listed.length}</span></button>
+            <button onClick={() => setActiveBucket('sold')} className={activeBucket === 'sold' ? 'mobile-tab active-sold' : 'mobile-tab'}>Sold <span>{sold.length}</span></button>
+          </div>
+          <div className="inventory">
+            <div className={`bucket at-home ${activeBucket !== 'at_home' ? 'bucket-hidden' : ''}`}>
+              <h2>At Home <span>{atHome.length}</span></h2>
+              {atHome.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+            </div>
+            <div className={`bucket listed ${activeBucket !== 'listed' ? 'bucket-hidden' : ''}`}>
+              <h2>Listed <span>{listed.length}</span></h2>
+              {listed.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+            </div>
+            <div className={`bucket sold ${activeBucket !== 'sold' ? 'bucket-hidden' : ''}`}>
+              <h2>Sold <span>{sold.length}</span></h2>
+              {sold.map(item => <ItemCard key={item.id} item={item} refresh={fetchItems} onList={setListingItem} onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} />)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view === 'add' && <AddItemForm refresh={fetchItems} setView={setView} />}
+      {listingItem && <ListingModal item={listingItem} onClose={() => setListingItem(null)} refresh={fetchItems} />}
+      {soldItem && <SoldModal item={soldItem} onClose={() => setSoldItem(null)} refresh={fetchItems} />}
+      {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
+      {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
+      {view === 'dashboard' && <Dashboard />}
+      {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} refresh={items} />}
+    </div>
+  );
+}
+
+function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleList = () => {
+    onList(item);
+  };
+
+  const handleSold = () => {
+    onSold(item);
+  };
+
+  const handleRevert = async () => {
+    await axios.patch(`${API}/items/${item.id}/revert`);
+    refresh();
+  };
+
+  const profit = item.status === 'sold' && item.sale_price
+    ? parseFloat(item.sale_price) - parseFloat(item.cost) - parseFloat(item.platform_fees || 0) - parseFloat(item.shipping_costs || 0)
+    : null;
+
+  return (
+    <div className="item-card">
+      <div className="item-name">{item.name}</div>
+      <div className="item-meta">{item.category} · {item.location}</div>
+      <div className="item-meta">Cost: {formatCurrency(item.cost)}</div>
+      {item.status === 'listed' && item.asking_price && (
+        <div className="item-meta">Asking: {formatCurrency(item.asking_price)}</div>
+      )}
+      {item.status === 'listed' && item.platform && (
+        <div className="item-meta">Platform: {item.platform}</div>
+      )}
+      {item.status === 'sold' && item.sale_price && (
+        <div className="item-meta">Sold for: {formatCurrency(item.sale_price)}</div>
+      )}
+      {item.status === 'sold' && item.sold_at && (
+        <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+      )}
+      {item.status === 'sold' && item.tracking_url && (
+        <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
+      )}
+      {profit && <div className="item-profit">Profit: {formatCurrency(profit)}</div>}
+      <div className={`item-status ${item.status}`}>{item.status.replace('_', ' ')}</div>
+      <div className="photos-toggle" onClick={async () => { await axios.patch(`${API}/items/${item.id}/photos`); refresh(); }}>
+        {item.photos_ready ? '📷 Photos ready' : '📷 No photos yet'}
+      </div>
+      {item.status === 'listed' && item.listed_at && (
+        <div className="item-meta days-sitting">
+          {Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days listed
+        </div>
+      )}
+      <div className="item-actions">
+        <div className="menu-wrapper" onBlur={() => setTimeout(() => setMenuOpen(false), 150)}>
+          <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
+          {menuOpen && (
+            <div className="menu-dropdown">
+              {item.status === 'at_home' && (
+                <button onClick={() => { handleList(); setMenuOpen(false); }}>Mark as Listed</button>
+              )}
+              {item.status === 'listed' && (
+                <button onClick={() => { handleSold(); setMenuOpen(false); }}>Mark as Sold</button>
+              )}
+              {item.status === 'listed' && (
+                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Unlist</button>
+              )}
+              {item.status === 'sold' && (
+                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Undo Sale</button>
+              )}
+              <button onClick={() => { onEdit(item); setMenuOpen(false); }}>Edit</button>
+              <button className="danger" onClick={() => { onDelete(item); setMenuOpen(false); }}>Delete</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddItemForm({ refresh, setView }) {
+  const [form, setForm] = useState({
+    name: '', description: '', category: 'Electronics',
+    cost: '', location: '', quantity: 1, brand: '',
+    model: '', dimensions: '', color: '', condition: '', sku: '', notes: ''
+  });
+
+  const handleSubmit = async () => {
+    if (!form.name.trim()) {
+      alert('Please enter an item name.');
+      return;
+    }
+    if (!form.cost && form.cost !== 0) {
+      alert('Please enter a cost. Use 0 if it was free.');
+      return;
+    }
+    await axios.post(`${API}/items`, {
+      ...form,
+      added_by: '6e9219cc-fc42-4511-be63-98536283cc50'
+    });
+    refresh();
+    setView('inventory');
+  };
+
+  return (
+    <div className="form-container">
+      <h2>Add New Item</h2>
+      <input placeholder="Item name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+      <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+      <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+        <option>Electronics</option>
+        <option>Tools</option>
+        <option>Home & Kitchen</option>
+        <option>Clothing</option>
+        <option>Collectibles</option>
+        <option>Other</option>
+      </select>
+      <input placeholder="Cost ($) *" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
+      <input placeholder="Location (e.g. Basement)" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+      <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+      <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+      <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+      <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
+      <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
+      <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
+        <option value="">Condition</option>
+        <option>New</option>
+        <option>Like New</option>
+        <option>Good</option>
+        <option>Fair</option>
+        <option>Poor</option>
+      </select>
+      <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
+      <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+      <button onClick={handleSubmit}>Add Item</button>
+    </div>
+  );
+}
+
+function Dashboard() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    axios.get(`${API}/analytics`).then(res => setData(res.data));
+  }, []);
+
+  if (!data) return <div style={{padding: '2rem'}}>Loading...</div>;
+
+  const { financials, byMarketplaceListed, byMarketplaceFinancials, byCategory, expiring } = data;
+
+  const handleBackup = () => {
+    window.open(`${API}/backup`, '_blank');
+  };
+
+  const handleRestore = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const json = JSON.parse(text);
+    if (!window.confirm('This will REPLACE all your current data with the backup. Are you sure?')) return;
+    await axios.post(`${API}/backup/restore`, json);
+    alert('Database restored successfully. Refresh the page.');
+  };
+
+  return (
+    <div className="dashboard">
+      <section className="dash-section">
+        <h2>Backup & Restore</h2>
+        <div className="backup-actions">
+          <button onClick={handleBackup} className="btn-backup">⬇ Download Backup</button>
+          <label className="btn-restore">
+            ⬆ Restore from Backup
+            <input type="file" accept=".json" onChange={handleRestore} style={{display: 'none'}} />
+          </label>
+        </div>
+        <p className="backup-note">Download saves everything. Restore replaces all current data.</p>
+      </section>
+
+      <section className="dash-section">
+        <h2>Overall Performance</h2>
+        <div className="stat-grid">
+          <div className="stat-card">
+            <div className="stat-label">Gross Income</div>
+            <div className="stat-value">{formatCurrency(financials.gross_income)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Total Cost</div>
+            <div className="stat-value">{formatCurrency(financials.total_cost)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Fees & Shipping</div>
+            <div className="stat-value">{formatCurrency(parseFloat(financials.total_fees) + parseFloat(financials.total_shipping))}</div>
+          </div>
+          <div className="stat-card highlight">
+            <div className="stat-label">Net Profit</div>
+            <div className="stat-value">{formatCurrency(financials.net_profit)}</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="dash-section">
+        <h2>Expiring Listings <span className="section-sub">sorted by soonest</span></h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Platform</th>
+              <th>Asking Price</th>
+              <th>Days Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expiring.map(l => (
+              <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent' : ''}>
+                <td>{l.name}</td>
+                <td>{l.platform}</td>
+                <td>{formatCurrency(l.asking_price)}</td>
+                <td>{l.days_left} days</td>
+              </tr>
+            ))}
+            {expiring.length === 0 && <tr><td colSpan="4" style={{textAlign:'center', color:'#888'}}>No active listings</td></tr>}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="dash-section">
+        <h2>Currently Listed by Marketplace</h2>
+        <table className="dash-table">
+          <thead>
+            <tr><th>Platform</th><th>Active Listings</th></tr>
+          </thead>
+          <tbody>
+            {byMarketplaceListed.map(m => (
+              <tr key={m.platform}>
+                <td>{m.platform}</td>
+                <td>{m.listed_count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="dash-section">
+        <h2>Performance by Marketplace</h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Sold</th>
+              <th>Gross</th>
+              <th>Fees</th>
+              <th>Net Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {byMarketplaceFinancials.map(m => (
+              <tr key={m.platform}>
+                <td>{m.platform}</td>
+                <td>{m.total_sold}</td>
+                <td>{formatCurrency(m.gross_income)}</td>
+                <td>{formatCurrency(parseFloat(m.total_fees) + parseFloat(m.total_shipping))}</td>
+                <td className="profit">{formatCurrency(m.net_profit)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="dash-section">
+        <h2>Performance by Category</h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Sold</th>
+              <th>Listed</th>
+              <th>At Home</th>
+              <th>Net Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {byCategory.map(c => (
+              <tr key={c.category}>
+                <td>{c.category}</td>
+                <td>{c.total_sold}</td>
+                <td>{c.total_listed}</td>
+                <td>{c.total_at_home}</td>
+                <td className="profit">{formatCurrency(c.net_profit)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+  );
+}
+
+function ListingModal({ item, onClose, refresh }) {
+  const [form, setForm] = useState({
+    platform: 'eBay',
+    asking_price: '',
+    listing_url: ''
+  });
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!form.asking_price) {
+      setError('Please enter an asking price.');
+      return;
+    }
+    await axios.post(`${API}/listings`, {
+      item_id: item.id,
+      platform: form.platform,
+      asking_price: parseFloat(form.asking_price),
+      listing_url: form.listing_url
+    });
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>List "{item.name}"</h2>
+        <p className="modal-sub">Where are you listing this?</p>
+        <select value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}>
+          <option>eBay</option>
+          <option>Mercari</option>
+          <option>Facebook Marketplace</option>
+          <option>OfferUp</option>
+          <option>Poshmark</option>
+        </select>
+        <input
+          placeholder="Asking price ($)"
+          type="number"
+          value={form.asking_price}
+          onChange={e => setForm({...form, asking_price: e.target.value})}
+        />
+        <input
+          placeholder="Listing URL (optional)"
+          value={form.listing_url}
+          onChange={e => setForm({...form, listing_url: e.target.value})}
+        />
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleSubmit} className="btn-confirm">List Item</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SoldModal({ item, onClose, refresh }) {
+  const [form, setForm] = useState({
+    sale_price: '',
+    platform_fees: '',
+    shipping_costs: '',
+    tracking_url: ''
+  });
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!form.sale_price) {
+      setError('Please enter a sale price.');
+      return;
+    }
+    const listingRes = await axios.get(`${API}/listings/${item.id}`);
+    const listing = listingRes.data[0];
+    if (!listing) {
+      setError('No listing found for this item.');
+      return;
+    }
+    await axios.patch(`${API}/listings/${listing.id}/sold`, {
+      item_id: item.id,
+      sale_price: parseFloat(form.sale_price),
+      platform_fees: parseFloat(form.platform_fees || 0),
+      shipping_costs: parseFloat(form.shipping_costs || 0),
+      tracking_url: form.tracking_url
+    });
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Mark "{item.name}" as Sold</h2>
+        <p className="modal-sub">Enter the sale details</p>
+        <input
+          placeholder="Sale price ($)"
+          type="number"
+          value={form.sale_price}
+          onChange={e => setForm({...form, sale_price: e.target.value})}
+        />
+        <input
+          placeholder="Platform fees ($) — optional"
+          type="number"
+          value={form.platform_fees}
+          onChange={e => setForm({...form, platform_fees: e.target.value})}
+        />
+        <input
+          placeholder="Shipping costs ($) — optional"
+          type="number"
+          value={form.shipping_costs}
+          onChange={e => setForm({...form, shipping_costs: e.target.value})}
+        />
+        <input
+          placeholder="Tracking URL (optional)"
+          value={form.tracking_url}
+          onChange={e => setForm({...form, tracking_url: e.target.value})}
+        />
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleSubmit} className="btn-confirm">Confirm Sale</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditModal({ item, onClose, refresh }) {
+  const [form, setForm] = useState({
+    name: item.name || '',
+    description: item.description || '',
+    category: item.category || 'Electronics',
+    cost: item.cost || '',
+    location: item.location || '',
+    quantity: item.quantity || 1,
+    brand: item.brand || '',
+    model: item.model || '',
+    dimensions: item.dimensions || '',
+    color: item.color || '',
+    condition: item.condition || '',
+    sku: item.sku || ''
+  });
+
+  const handleSubmit = async () => {
+    await axios.patch(`${API}/items/${item.id}`, form);
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Edit Item</h2>
+        <input placeholder="Item name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+        <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+        <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+          <option>Electronics</option>
+          <option>Tools</option>
+          <option>Home & Kitchen</option>
+          <option>Clothing</option>
+          <option>Collectibles</option>
+          <option>Other</option>
+        </select>
+        <input placeholder="Cost ($)" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
+        <input placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+        <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+        <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+        <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+        <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
+        <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
+        <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
+          <option value="">Condition</option>
+          <option>New</option>
+          <option>Like New</option>
+          <option>Good</option>
+          <option>Fair</option>
+          <option>Poor</option>
+        </select>
+        <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
+        <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleSubmit} className="btn-confirm">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteModal({ item, onClose, refresh }) {
+  const handleDelete = async () => {
+    await axios.delete(`${API}/items/${item.id}`);
+    refresh();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>Delete "{item.name}"?</h2>
+        <p className="modal-sub">This will permanently delete the item and all its listings. This cannot be undone.</p>
+        <div className="modal-actions">
+          <button onClick={onClose} className="btn-cancel">Cancel</button>
+          <button onClick={handleDelete} className="btn-delete-confirm">Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <div className="menu-wrapper" onBlur={() => setTimeout(() => setMenuOpen(false), 150)}>
+      <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
+      {menuOpen && (
+        <div className="menu-dropdown">
+          <button onClick={() => { onSold(item); setMenuOpen(false); }}>Mark as Sold</button>
+          <button onClick={() => { onEdit(item); setMenuOpen(false); }}>Edit</button>
+          <button className="danger" onClick={() => { onDelete(item); setMenuOpen(false); }}>Delete</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
+  const [items, setItems] = useState([]);
+
+  const fetchItems = () => {
+    axios.get(`${API}/items`).then(res => {
+      setItems(res.data.filter(i => i.status === 'listed'));
+    });
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, [refresh]);
+
+  const platforms = [...new Set(items.map(i => i.platform).filter(Boolean))];
+
+  if (items.length === 0) return (
+    <div style={{padding: '2rem', color: '#888'}}>No items currently listed on any platform.</div>
+  );
+
+  return (
+    <div className="byplatform">
+      {platforms.map(platform => (
+        <div key={platform} className="platform-column">
+          <div className="platform-header">
+            <h2>{platform}</h2>
+            <span>{items.filter(i => i.platform === platform).length} listed</span>
+          </div>
+          {items.filter(i => i.platform === platform).map(item => (
+            <div key={item.id} className="platform-card">
+              <div className="platform-card-name">{item.name}</div>
+              <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
+              <div className="platform-card-row"><span>Description</span><span>{item.description || '—'}</span></div>
+              <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>
+              <div className="platform-card-row"><span>Cost</span><span>{formatCurrency(item.cost)}</span></div>
+              <div className="platform-card-row"><span>Asking Price</span><span>{formatCurrency(item.asking_price)}</span></div>
+              <div className="platform-card-row"><span>Days Listed</span><span>{Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days</span></div>
+              <div className="platform-card-row"><span>Photos Ready</span><span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span></div>
+              {item.brand && <div className="platform-card-row"><span>Brand</span><span>{item.brand}</span></div>}
+              {item.model && <div className="platform-card-row"><span>Model</span><span>{item.model}</span></div>}
+              {item.dimensions && <div className="platform-card-row"><span>Dimensions</span><span>{item.dimensions}</span></div>}
+              {item.color && <div className="platform-card-row"><span>Color</span><span>{item.color}</span></div>}
+              {item.condition && <div className="platform-card-row"><span>Condition</span><span>{item.condition}</span></div>}
+              {item.sku && <div className="platform-card-row"><span>SKU</span><span>{item.sku}</span></div>}
+              {item.notes && <div className="platform-card-row"><span>Notes</span><span>{item.notes}</span></div>}
+              {item.listing_url && (
+                <div className="platform-card-row">
+                  <span>Listing</span>
+                  <a href={item.listing_url} target="_blank" rel="noreferrer" className="card-link">View Listing</a>
+                </div>
+              )}
+              {item.tracking_url && (
+                <div className="platform-card-row">
+                  <span>Tracking</span>
+                  <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
+                </div>
+              )}
+              {item.quantity > 1 && <div className="platform-card-row"><span>Quantity</span><span>{item.quantity}</span></div>}
+              <div className="platform-card-actions">
+                <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default App;
+</file>
+
+</files>

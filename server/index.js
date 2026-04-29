@@ -5,6 +5,7 @@ const itemsRouter = require('./routes/items');
 const listingsRouter = require('./routes/listings');
 const analyticsRouter = require('./routes/analytics');
 const backupRouter = require('./routes/backup');
+const bulkRouter = require('./routes/bulk');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,8 @@ app.use('/api/items', itemsRouter);
 app.use('/api/listings', listingsRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/backup', backupRouter);
+app.use('/api/bulk', bulkRouter);
+
 
 app.get('/', (req, res) => {
   res.json({ message: 'Reseller API is running' });

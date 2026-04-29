@@ -28,6 +28,29 @@ function App() {
     setItems(res.data);
   };
 
+  const handleExportCSV = () => {
+    // This opens the export route in a new tab to trigger the download
+    window.open(`${API}/bulk/export`, '_blank');
+  };
+
+  const handleImportCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    try {
+      // Sending the CSV text to the new import route
+      const response = await axios.post(`${API}/bulk/import`, text, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+      alert(response.data.message);
+      fetchItems(); // Refresh the list automatically after import
+    } catch (err) {
+      console.error("Import failed", err);
+      alert("Failed to import CSV. Check console for details.");
+    }
+  };
+
   const atHome = items.filter(i => i.status === 'at_home');
   const listed = items.filter(i => i.status === 'listed');
   const sold = items.filter(i => i.status === 'sold');
@@ -73,7 +96,12 @@ function App() {
       {soldItem && <SoldModal item={soldItem} onClose={() => setSoldItem(null)} refresh={fetchItems} />}
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
       {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
-      {view === 'dashboard' && <Dashboard />}
+      {view === 'dashboard' && (
+  <Dashboard 
+    onExport={handleExportCSV} 
+    onImport={handleImportCSV} 
+  />
+)}
       {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} refresh={items} />}
     </div>
   );
@@ -214,7 +242,7 @@ function AddItemForm({ refresh, setView }) {
   );
 }
 
-function Dashboard() {
+function Dashboard({ onExport, onImport }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -252,6 +280,34 @@ function Dashboard() {
         </div>
         <p className="backup-note">Download saves everything. Restore replaces all current data.</p>
       </section>
+
+      {/* --- NEW BULK EDIT SECTION START --- */}
+      <section className="dash-section bulk-section">
+        <h2>Bulk Inventory Actions</h2>
+        <div className="backup-actions">
+          <button 
+            onClick={onExport} 
+            className="btn-backup" 
+            style={{backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold'}}
+          >
+            ⬇ Export CSV for Bulk Edit
+          </button>
+          <label 
+            className="btn-restore" 
+            style={{backgroundColor: '#3498db', color: 'white', fontWeight: 'bold', cursor: 'pointer'}}
+          >
+            ⬆ Import CSV (Apply Changes)
+            <input 
+              type="file" 
+              accept=".csv" 
+              onChange={onImport} 
+              style={{display: 'none'}} 
+            />
+          </label>
+        </div>
+        <p className="backup-note">Export your data, edit it in Excel/Sheets (keep the ID column as-is), and import it back to save changes.</p>
+      </section>
+      {/* --- NEW BULK EDIT SECTION END --- */}
 
       <section className="dash-section">
         <h2>Overall Performance</h2>
