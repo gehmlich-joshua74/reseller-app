@@ -376,293 +376,6 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 </file>
 
-<file path="server/routes/analytics.js">
-const express = require('express');
-const router = express.Router();
-const pool = require('../db');
-
-const PLATFORM_EXPIRY_DAYS = {
-  'eBay': 30,
-  'Facebook Marketplace': 7,
-  'OfferUp': 30,
-  'Mercari': 60,
-  'Poshmark': 60,
-};
-
-router.get('/', async (req, res) => {
-  try {
-    // Overall financials
-    const financials = await pool.query(`
-      SELECT
-        COUNT(*) FILTER (WHERE i.status = 'sold') as total_sold,
-        COALESCE(SUM(l.sale_price) FILTER (WHERE i.status = 'sold'), 0) as gross_income,
-        COALESCE(SUM(i.cost) FILTER (WHERE i.status = 'sold'), 0) as total_cost,
-        COALESCE(SUM(l.platform_fees) FILTER (WHERE i.status = 'sold'), 0) as total_fees,
-        COALESCE(SUM(l.shipping_costs) FILTER (WHERE i.status = 'sold'), 0) as total_shipping,
-        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)) FILTER (WHERE i.status = 'sold'), 0) as net_profit
-      FROM items i
-      LEFT JOIN listings l ON l.item_id = i.id
-    `);
-
-    // By marketplace — listed counts
-    const byMarketplaceListed = await pool.query(`
-      SELECT platform, COUNT(*) as listed_count
-      FROM listings
-      WHERE sold_at IS NULL
-      GROUP BY platform
-      ORDER BY listed_count DESC
-    `);
-
-    // By marketplace — financials
-    const byMarketplaceFinancials = await pool.query(`
-      SELECT
-        l.platform,
-        COUNT(*) as total_sold,
-        COALESCE(SUM(l.sale_price), 0) as gross_income,
-        COALESCE(SUM(i.cost), 0) as total_cost,
-        COALESCE(SUM(l.platform_fees), 0) as total_fees,
-        COALESCE(SUM(l.shipping_costs), 0) as total_shipping,
-        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)), 0) as net_profit
-      FROM listings l
-      JOIN items i ON i.id = l.item_id
-      WHERE l.sold_at IS NOT NULL
-      GROUP BY l.platform
-      ORDER BY net_profit DESC
-    `);
-
-    // By category
-    const byCategory = await pool.query(`
-      SELECT
-        i.category,
-        COUNT(*) FILTER (WHERE i.status = 'sold') as total_sold,
-        COUNT(*) FILTER (WHERE i.status = 'listed') as total_listed,
-        COUNT(*) FILTER (WHERE i.status = 'at_home') as total_at_home,
-        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)) FILTER (WHERE i.status = 'sold'), 0) as net_profit
-      FROM items i
-      LEFT JOIN listings l ON l.item_id = i.id
-      GROUP BY i.category
-      ORDER BY total_sold DESC
-    `);
-
-    // Returns
-    const returns = await pool.query(`
-      SELECT
-        l.platform,
-        i.category,
-        COUNT(*) as return_count
-      FROM listings l
-      JOIN items i ON i.id = l.item_id
-      WHERE l.sold_at IS NULL AND l.listed_at < now() - interval '90 days'
-      GROUP BY l.platform, i.category
-      ORDER BY return_count DESC
-    `);
-
-    // Expiring listings
-    const activeListing = await pool.query(`
-      SELECT i.name, i.category, l.platform, l.listed_at, l.asking_price, l.id as listing_id
-      FROM listings l
-      JOIN items i ON i.id = l.item_id
-      WHERE l.sold_at IS NULL
-      ORDER BY l.listed_at ASC
-    `);
-
-    const expiring = activeListing.rows.map(listing => {
-      const days = PLATFORM_EXPIRY_DAYS[listing.platform] || 30;
-      const listedAt = new Date(listing.listed_at);
-      const expiresAt = new Date(listedAt.getTime() + days * 24 * 60 * 60 * 1000);
-      const daysLeft = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));
-      return { ...listing, expires_at: expiresAt, days_left: daysLeft };
-    }).sort((a, b) => a.days_left - b.days_left);
-
-    res.json({
-      financials: financials.rows[0],
-      byMarketplaceListed: byMarketplaceListed.rows,
-      byMarketplaceFinancials: byMarketplaceFinancials.rows,
-      byCategory: byCategory.rows,
-      returns: returns.rows,
-      expiring
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-module.exports = router;
-</file>
-
-<file path="server/routes/backup.js">
-const express = require('express');
-const router = express.Router();
-const pool = require('../db');
-
-// GET full backup
-router.get('/', async (req, res) => {
-  try {
-    const users = await pool.query('SELECT * FROM users');
-    const items = await pool.query('SELECT * FROM items');
-    const listings = await pool.query('SELECT * FROM listings');
-
-    const backup = {
-      version: '1.0',
-      exported_at: new Date().toISOString(),
-      data: {
-        users: users.rows,
-        items: items.rows,
-        listings: listings.rows
-      }
-    };
-
-    res.setHeader('Content-Disposition', `attachment; filename=reseller-backup-${new Date().toISOString().split('T')[0]}.json`);
-    res.setHeader('Content-Type', 'application/json');
-    res.json(backup);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST restore from backup
-router.post('/restore', async (req, res) => {
-  try {
-    const { data } = req.body;
-
-    if (!data || !data.users || !data.items || !data.listings) {
-      return res.status(400).json({ error: 'Invalid backup file format.' });
-    }
-
-    // Wipe existing data in correct order
-    await pool.query('DELETE FROM listings');
-    await pool.query('DELETE FROM items');
-    await pool.query('DELETE FROM users');
-
-    // Restore users
-    for (const user of data.users) {
-      await pool.query(
-        `INSERT INTO users (id, name, email, password_hash, created_at)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (id) DO NOTHING`,
-        [user.id, user.name, user.email, user.password_hash, user.created_at]
-      );
-    }
-
-    // Restore items
-    for (const item of data.items) {
-      await pool.query(
-        `INSERT INTO items (id, added_by, name, description, category, status, cost, location, photos_ready, created_at, updated_at, quantity, brand, model, dimensions, color, condition, sku, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-         ON CONFLICT (id) DO NOTHING`,
-        [item.id, item.added_by, item.name, item.description, item.category, item.status, item.cost, item.location, item.photos_ready, item.created_at, item.updated_at, item.quantity, item.brand, item.model, item.dimensions, item.color, item.condition, item.sku, item.notes]
-      );
-    }
-
-    // Restore listings
-    for (const listing of data.listings) {
-      await pool.query(
-        `INSERT INTO listings (id, item_id, platform, asking_price, listed_at, sold_at, sale_price, platform_fees, shipping_costs, listing_url, tracking_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-         ON CONFLICT (id) DO NOTHING`,
-        [listing.id, listing.item_id, listing.platform, listing.asking_price, listing.listed_at, listing.sold_at, listing.sale_price, listing.platform_fees, listing.shipping_costs, listing.listing_url, listing.tracking_url]
-      );
-    }
-
-    res.json({ success: true, message: 'Database restored successfully.' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-module.exports = router;
-</file>
-
-<file path="server/routes/bulk.js">
-const express = require('express');
-const router = express.Router();
-const pool = require('../db');
-const { Parser } = require('json2csv');
-const csv = require('csv-parser');
-const stream = require('stream');
-
-// 1. EXPORT: Download all items as CSV
-router.get('/export', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM items ORDER BY created_at DESC');
-    const fields = ['id', 'name', 'category', 'status', 'cost', 'location', 'quantity', 'brand', 'model', 'sku', 'notes'];
-    const json2csvParser = new Parser({ fields });
-    const csvData = json2csvParser.parse(result.rows);
-
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=inventory_bulk_edit.csv');
-    res.status(200).send(csvData);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 2. IMPORT: Upload CSV and update items (Bulk Edit)
-// IMPORT: Upload CSV to update existing items OR add new ones
-router.post('/import', express.text(), async (req, res) => {
-  const results = [];
-  const bufferStream = new stream.PassThrough();
-  bufferStream.end(req.body);
-
-  bufferStream
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', async () => {
-      try {
-        let updatedCount = 0;
-        let createdCount = 0;
-
-        for (const row of results) {
-          if (row.id && row.id.trim() !== "") {
-            // OPTION A: Update existing item
-            await pool.query(
-              `UPDATE items SET 
-                name=$1, category=$2, status=$3, cost=$4, location=$5, 
-                quantity=$6, brand=$7, model=$8, sku=$9, notes=$10, updated_at=now()
-               WHERE id=$11`,
-              [row.name, row.category, row.status, row.cost, row.location, 
-               row.quantity, row.brand, row.model, row.sku, row.notes, row.id]
-            );
-            updatedCount++;
-          } else {
-            // OPTION B: Create new item (No ID provided)
-            await pool.query(
-              `INSERT INTO items (
-                name, category, status, cost, location, 
-                quantity, brand, model, sku, notes, added_by
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-              [
-                row.name, 
-                row.category || 'Other', 
-                row.status || 'at_home', 
-                row.cost || 0, 
-                row.location || '', 
-                row.quantity || 1, 
-                row.brand || '', 
-                row.model || '', 
-                row.sku || '', 
-                row.notes || '',
-                '6e9219cc-fc42-4511-be63-98536283cc50' // Your default User ID
-              ]
-            );
-            createdCount++;
-          }
-        }
-        res.json({ 
-          success: true, 
-          message: `Process complete: Updated ${updatedCount} items and added ${createdCount} new items.` 
-        });
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database update failed. Check your CSV columns." });
-      }
-    });
-});
-
-module.exports = router;
-</file>
-
 <file path="server/db.js">
 const { Pool } = require('pg');
 require('dotenv').config();
@@ -777,6 +490,329 @@ I built this for me and my wife after we started a reselling business and found 
 - [ ] Deploy to web so it's accessible from any device
 - [ ] Price drop suggestions based on days listed
 - [ ] Photo upload support
+</file>
+
+<file path="server/routes/analytics.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+const PLATFORM_EXPIRY_DAYS = {
+  'eBay': 30,
+  'Facebook Marketplace': 7,
+  'OfferUp': 30,
+  'Mercari': 60,
+  'Poshmark': 60,
+};
+
+router.get('/', async (req, res) => {
+  try {
+    // Overall financials
+    const financials = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE i.status = 'sold') as total_sold,
+        COALESCE(SUM(l.sale_price) FILTER (WHERE i.status = 'sold'), 0) as gross_income,
+        COALESCE(SUM(i.cost) FILTER (WHERE i.status = 'sold'), 0) as total_cost,
+        COALESCE(SUM(l.platform_fees) FILTER (WHERE i.status = 'sold'), 0) as total_fees,
+        COALESCE(SUM(l.shipping_costs) FILTER (WHERE i.status = 'sold'), 0) as total_shipping,
+        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)) FILTER (WHERE i.status = 'sold'), 0) as net_profit
+      FROM items i
+      LEFT JOIN listings l ON l.item_id = i.id
+    `);
+
+    // By marketplace — listed counts
+    const byMarketplaceListed = await pool.query(`
+      SELECT platform, COUNT(*) as listed_count
+      FROM listings
+      WHERE sold_at IS NULL
+      GROUP BY platform
+      ORDER BY listed_count DESC
+    `);
+
+    // By marketplace — financials
+    const byMarketplaceFinancials = await pool.query(`
+      SELECT
+        l.platform,
+        COUNT(*) as total_sold,
+        COALESCE(SUM(l.sale_price), 0) as gross_income,
+        COALESCE(SUM(i.cost), 0) as total_cost,
+        COALESCE(SUM(l.platform_fees), 0) as total_fees,
+        COALESCE(SUM(l.shipping_costs), 0) as total_shipping,
+        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)), 0) as net_profit
+      FROM listings l
+      JOIN items i ON i.id = l.item_id
+      WHERE l.sold_at IS NOT NULL
+      GROUP BY l.platform
+      ORDER BY net_profit DESC
+    `);
+
+    // By category
+    const byCategory = await pool.query(`
+      SELECT
+        i.category,
+        COUNT(*) FILTER (WHERE i.status = 'sold') as total_sold,
+        COUNT(*) FILTER (WHERE i.status = 'listed') as total_listed,
+        COUNT(*) FILTER (WHERE i.status = 'at_home') as total_at_home,
+        COALESCE(SUM(l.sale_price - i.cost - COALESCE(l.platform_fees,0) - COALESCE(l.shipping_costs,0)) FILTER (WHERE i.status = 'sold'), 0) as net_profit
+      FROM items i
+      LEFT JOIN listings l ON l.item_id = i.id
+      GROUP BY i.category
+      ORDER BY total_sold DESC
+    `);
+
+    // Returns
+    const returns = await pool.query(`
+      SELECT
+        l.platform,
+        i.category,
+        COUNT(*) as return_count
+      FROM listings l
+      JOIN items i ON i.id = l.item_id
+      WHERE l.sold_at IS NULL AND l.listed_at < now() - interval '90 days'
+      GROUP BY l.platform, i.category
+      ORDER BY return_count DESC
+    `);
+
+    // Expiring listings
+    // Expiring listings
+    const activeListing = await pool.query(`
+      SELECT i.name, i.category, l.platform, l.listed_at, l.asking_price, l.id as listing_id, l.expiration_days, l.min_offer_amount
+      FROM listings l
+      JOIN items i ON i.id = l.item_id
+      WHERE l.sold_at IS NULL
+      ORDER BY l.listed_at ASC
+    `);
+
+    const expiring = activeListing.rows.map(listing => {
+      // Use the database value 'expiration_days'. If it's missing for some reason, default to 30.
+      const days = listing.expiration_days || 30;
+      const listedAt = new Date(listing.listed_at);
+      const expiresAt = new Date(listedAt.getTime() + days * 24 * 60 * 60 * 1000);
+      const daysLeft = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));
+      return { ...listing, expires_at: expiresAt, days_left: daysLeft };
+    }).sort((a, b) => a.days_left - b.days_left);
+
+    res.json({
+      financials: financials.rows[0],
+      byMarketplaceListed: byMarketplaceListed.rows,
+      byMarketplaceFinancials: byMarketplaceFinancials.rows,
+      byCategory: byCategory.rows,
+      returns: returns.rows,
+      expiring
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+</file>
+
+<file path="server/routes/backup.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+// GET full backup
+router.get('/', async (req, res) => {
+  try {
+    const users = await pool.query('SELECT * FROM users');
+    const items = await pool.query('SELECT * FROM items');
+    const listings = await pool.query('SELECT * FROM listings');
+
+    const backup = {
+      version: '1.0',
+      exported_at: new Date().toISOString(),
+      data: {
+        users: users.rows,
+        items: items.rows,
+        listings: listings.rows
+      }
+    };
+
+    res.setHeader('Content-Disposition', `attachment; filename=reseller-backup-${new Date().toISOString().split('T')[0]}.json`);
+    res.setHeader('Content-Type', 'application/json');
+    res.json(backup);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST restore from backup
+router.post('/restore', async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    if (!data || !data.users || !data.items || !data.listings) {
+      return res.status(400).json({ error: 'Invalid backup file format.' });
+    }
+
+    // Wipe existing data in correct order
+    await pool.query('DELETE FROM listings');
+    await pool.query('DELETE FROM items');
+    await pool.query('DELETE FROM users');
+
+    // Restore users
+    for (const user of data.users) {
+      await pool.query(
+        `INSERT INTO users (id, name, email, password_hash, created_at)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO NOTHING`,
+        [user.id, user.name, user.email, user.password_hash, user.created_at]
+      );
+    }
+
+    // Restore items
+    for (const item of data.items) {
+      await pool.query(
+        `INSERT INTO items (id, added_by, name, description, category, status, cost, location, photos_ready, created_at, updated_at, quantity, brand, model, dimensions, color, condition, sku, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+         ON CONFLICT (id) DO NOTHING`,
+        [item.id, item.added_by, item.name, item.description, item.category, item.status, item.cost, item.location, item.photos_ready, item.created_at, item.updated_at, item.quantity, item.brand, item.model, item.dimensions, item.color, item.condition, item.sku, item.notes]
+      );
+    }
+
+    // Restore listings
+    // Restore listings
+    for (const listing of data.listings) {
+      await pool.query(
+        `INSERT INTO listings (
+          id, item_id, platform, asking_price, listed_at, 
+          sold_at, sale_price, platform_fees, shipping_costs, 
+          listing_url, tracking_url, offers_enabled, min_offer_amount, expiration_days
+        )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         ON CONFLICT (id) DO NOTHING`,
+        [
+          listing.id, 
+          listing.item_id, 
+          listing.platform, 
+          listing.asking_price, 
+          listing.listed_at || new Date(), // Prevents the -1 date issue
+          listing.sold_at, 
+          listing.sale_price, 
+          listing.platform_fees, 
+          listing.shipping_costs, 
+          listing.listing_url, 
+          listing.tracking_url,
+          listing.offers_enabled || false,
+          listing.min_offer_amount || null,
+          listing.expiration_days || 30
+        ]
+      );
+    }
+
+    res.json({ success: true, message: 'Database restored successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+module.exports = router;
+</file>
+
+<file path="server/routes/bulk.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+const { Parser } = require('json2csv');
+const csv = require('csv-parser');
+const stream = require('stream');
+
+// 1. EXPORT: Download all items as CSV
+// 1. EXPORT: Download all items and their listings as CSV
+router.get('/export', async (req, res) => {
+  try {
+    // We JOIN the tables so we can see listing details (price, platform, floor, date)
+    const result = await pool.query(`
+      SELECT 
+        i.id, i.name, i.category, i.status, i.cost, i.location, i.quantity, i.brand, i.model, i.sku, i.notes,
+        l.platform, l.asking_price, l.offers_enabled, l.min_offer_amount, l.expiration_days, l.listed_at
+      FROM items i 
+      LEFT JOIN listings l ON i.id = l.item_id
+      ORDER BY i.created_at DESC
+    `);
+
+    const fields = [
+      'id', 'name', 'category', 'status', 'cost', 'location', 'quantity', 'brand', 'model', 'sku', 'notes',
+      'platform', 'asking_price', 'offers_enabled', 'min_offer_amount', 'expiration_days', 'listed_at'
+    ];
+    
+    const json2csvParser = new Parser({ fields });
+    const csvData = json2csvParser.parse(result.rows);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=inventory_bulk_edit.csv');
+    res.status(200).send(csvData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. IMPORT: Upload CSV and update items (Bulk Edit)
+// IMPORT: Upload CSV to update existing items OR add new ones
+router.post('/import', express.text(), async (req, res) => {
+  const results = [];
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(req.body);
+
+  bufferStream
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      try {
+        let updatedCount = 0;
+        let createdCount = 0;
+
+        for (const row of results) {
+          if (row.id && row.id.trim() !== "") {
+            // OPTION A: Update existing item
+            await pool.query(
+              `UPDATE items SET 
+                name=$1, category=$2, status=$3, cost=$4, location=$5, 
+                quantity=$6, brand=$7, model=$8, sku=$9, notes=$10, updated_at=now()
+               WHERE id=$11`,
+              [row.name, row.category, row.status, row.cost, row.location, 
+               row.quantity, row.brand, row.model, row.sku, row.notes, row.id]
+            );
+            updatedCount++;
+          } else {
+            // OPTION B: Create new item (No ID provided)
+            await pool.query(
+              `INSERT INTO items (
+                name, category, status, cost, location, 
+                quantity, brand, model, sku, notes, added_by
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+              [
+                row.name, 
+                row.category || 'Other', 
+                row.status || 'at_home', 
+                row.cost || 0, 
+                row.location || '', 
+                row.quantity || 1, 
+                row.brand || '', 
+                row.model || '', 
+                row.sku || '', 
+                row.notes || '',
+                '6e9219cc-fc42-4511-be63-98536283cc50' // Your default User ID
+              ]
+            );
+            createdCount++;
+          }
+        }
+        res.json({ 
+          success: true, 
+          message: `Process complete: Updated ${updatedCount} items and added ${createdCount} new items.` 
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database update failed. Check your CSV columns." });
+      }
+    });
+});
+
+module.exports = router;
 </file>
 
 <file path="server/package.json">
@@ -1808,6 +1844,123 @@ body {
   font-size: 12px;
   color: #888;
 }
+
+/* --- Restored & New Dashboard Analytics --- */
+.stat-card.profit-card {
+  border-left: 5px solid #27ae60; /* Visual cue for the "Net Profit" card */
+}
+
+.profit-text {
+  color: #27ae60;
+  font-weight: 700;
+}
+
+.urgent-row {
+  background-color: #fff5f5; /* Subtle red for expiring items */
+}
+
+.urgent-text {
+  color: #e94560;
+  font-weight: 600;
+}
+
+/* --- Expanded ByPlatform Card Styles --- */
+.platform-card-notes {
+  background: #fff9db; /* Post-it note yellow */
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 10px 0;
+  border-left: 3px solid #fab005;
+  line-height: 1.4;
+  color: #444;
+}
+
+.highlight-price {
+  color: #2980b9;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.sku-text {
+  font-family: 'Courier New', Courier, monospace;
+  background: #eee;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.card-divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 12px 0;
+}
+
+.platform-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+}
+
+/* --- Form & Modal Improvements --- */
+.modal-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+/* Better styling for the view link on cards */
+.btn-view-listing {
+  font-size: 12px;
+  color: #2980b9;
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-view-listing:hover {
+  text-decoration: underline;
+}
+
+/* --- General Design Polish --- */
+.stat-grid {
+  gap: 1.5rem; /* More breathing room for your totals */
+}
+
+.platform-column {
+  background: #f8f9fa; /* Slightly lighter gray for better contrast */
+  border: 1px solid #e9ecef;
+}
+
+.tool-group {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 6px;
+  align-items: center;
+}
+
+.csv-btn {
+  background-color: #27ae60 !important; /* Green for CSV tasks */
+  border-color: #27ae60 !important;
+  color: white !important;
+}
+
+.backup-note {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+}
 </file>
 
 <file path="client/src/App.js">
@@ -1842,7 +1995,6 @@ function App() {
   };
 
   const handleExportCSV = () => {
-    // This opens the export route in a new tab to trigger the download
     window.open(`${API}/bulk/export`, '_blank');
   };
 
@@ -1852,16 +2004,34 @@ function App() {
 
     const text = await file.text();
     try {
-      // Sending the CSV text to the new import route
       const response = await axios.post(`${API}/bulk/import`, text, {
         headers: { 'Content-Type': 'text/plain' }
       });
       alert(response.data.message);
-      fetchItems(); // Refresh the list automatically after import
+      fetchItems();
     } catch (err) {
       console.error("Import failed", err);
       alert("Failed to import CSV. Check console for details.");
     }
+  };
+
+  const handleRestore = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        const response = await axios.post(`${API}/restore`, json);
+        alert(response.data.message || "Database restored successfully!");
+        fetchItems();
+      } catch (err) {
+        console.error("Restore failed", err);
+        alert("Failed to restore. Ensure the file is a valid backup JSON.");
+      }
+    };
+    reader.readAsText(file);
   };
 
   const atHome = items.filter(i => i.status === 'at_home');
@@ -1876,7 +2046,7 @@ function App() {
           <button onClick={() => setView('inventory')} className={view === 'inventory' ? 'active' : ''}>Inventory</button>
           <button onClick={() => setView('byplatform')} className={view === 'byplatform' ? 'active' : ''}>By Platform</button>
           <button onClick={() => setView('dashboard')} className={view === 'dashboard' ? 'active' : ''}>Dashboard</button>
-<button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
+          <button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
         </nav>
       </header>
 
@@ -1910,11 +2080,12 @@ function App() {
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
       {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
       {view === 'dashboard' && (
-  <Dashboard 
-    onExport={handleExportCSV} 
-    onImport={handleImportCSV} 
-  />
-)}
+        <Dashboard 
+          onExport={handleExportCSV} 
+          onImport={handleImportCSV} 
+          onRestore={handleRestore} 
+        />
+      )}
       {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} refresh={items} />}
     </div>
   );
@@ -1922,13 +2093,8 @@ function App() {
 
 function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const handleList = () => {
-    onList(item);
-  };
-
-  const handleSold = () => {
-    onSold(item);
-  };
+  const handleList = () => onList(item);
+  const handleSold = () => onSold(item);
 
   const handleRevert = async () => {
     await axios.patch(`${API}/items/${item.id}/revert`);
@@ -1954,7 +2120,7 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
         <div className="item-meta">Sold for: {formatCurrency(item.sale_price)}</div>
       )}
       {item.status === 'sold' && item.sold_at && (
-        <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+        <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString()}</div>
       )}
       {item.status === 'sold' && item.tracking_url && (
         <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
@@ -1974,18 +2140,10 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
           <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
           {menuOpen && (
             <div className="menu-dropdown">
-              {item.status === 'at_home' && (
-                <button onClick={() => { handleList(); setMenuOpen(false); }}>Mark as Listed</button>
-              )}
-              {item.status === 'listed' && (
-                <button onClick={() => { handleSold(); setMenuOpen(false); }}>Mark as Sold</button>
-              )}
-              {item.status === 'listed' && (
-                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Unlist</button>
-              )}
-              {item.status === 'sold' && (
-                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Undo Sale</button>
-              )}
+              {item.status === 'at_home' && <button onClick={() => { handleList(); setMenuOpen(false); }}>Mark as Listed</button>}
+              {item.status === 'listed' && <button onClick={() => { handleSold(); setMenuOpen(false); }}>Mark as Sold</button>}
+              {item.status === 'listed' && <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Unlist</button>}
+              {item.status === 'sold' && <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Undo Sale</button>}
               <button onClick={() => { onEdit(item); setMenuOpen(false); }}>Edit</button>
               <button className="danger" onClick={() => { onDelete(item); setMenuOpen(false); }}>Delete</button>
             </div>
@@ -2004,18 +2162,11 @@ function AddItemForm({ refresh, setView }) {
   });
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      alert('Please enter an item name.');
+    if (!form.name.trim() || (!form.cost && form.cost !== 0)) {
+      alert('Name and Cost are required.');
       return;
     }
-    if (!form.cost && form.cost !== 0) {
-      alert('Please enter a cost. Use 0 if it was free.');
-      return;
-    }
-    await axios.post(`${API}/items`, {
-      ...form,
-      added_by: '6e9219cc-fc42-4511-be63-98536283cc50'
-    });
+    await axios.post(`${API}/items`, { ...form, added_by: '6e9219cc-fc42-4511-be63-98536283cc50' });
     refresh();
     setView('inventory');
   };
@@ -2034,12 +2185,10 @@ function AddItemForm({ refresh, setView }) {
         <option>Other</option>
       </select>
       <input placeholder="Cost ($) *" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
-      <input placeholder="Location (e.g. Basement)" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+      <input placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
       <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
       <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
       <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
-      <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
-      <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
       <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
         <option value="">Condition</option>
         <option>New</option>
@@ -2049,79 +2198,25 @@ function AddItemForm({ refresh, setView }) {
         <option>Poor</option>
       </select>
       <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
-      <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+      <textarea placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
       <button onClick={handleSubmit}>Add Item</button>
     </div>
   );
 }
 
-function Dashboard({ onExport, onImport }) {
+function Dashboard({ onExport, onImport, onRestore }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
     axios.get(`${API}/analytics`).then(res => setData(res.data));
   }, []);
 
-  if (!data) return <div style={{padding: '2rem'}}>Loading...</div>;
+  if (!data) return <div style={{padding: '2rem'}}>Loading analytics...</div>;
 
-  const { financials, byMarketplaceListed, byMarketplaceFinancials, byCategory, expiring } = data;
-
-  const handleBackup = () => {
-    window.open(`${API}/backup`, '_blank');
-  };
-
-  const handleRestore = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    const json = JSON.parse(text);
-    if (!window.confirm('This will REPLACE all your current data with the backup. Are you sure?')) return;
-    await axios.post(`${API}/backup/restore`, json);
-    alert('Database restored successfully. Refresh the page.');
-  };
+  const { financials, byMarketplaceFinancials, byCategory, expiring } = data;
 
   return (
     <div className="dashboard">
-      <section className="dash-section">
-        <h2>Backup & Restore</h2>
-        <div className="backup-actions">
-          <button onClick={handleBackup} className="btn-backup">⬇ Download Backup</button>
-          <label className="btn-restore">
-            ⬆ Restore from Backup
-            <input type="file" accept=".json" onChange={handleRestore} style={{display: 'none'}} />
-          </label>
-        </div>
-        <p className="backup-note">Download saves everything. Restore replaces all current data.</p>
-      </section>
-
-      {/* --- NEW BULK EDIT SECTION START --- */}
-      <section className="dash-section bulk-section">
-        <h2>Bulk Inventory Actions</h2>
-        <div className="backup-actions">
-          <button 
-            onClick={onExport} 
-            className="btn-backup" 
-            style={{backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold'}}
-          >
-            ⬇ Export CSV for Bulk Edit
-          </button>
-          <label 
-            className="btn-restore" 
-            style={{backgroundColor: '#3498db', color: 'white', fontWeight: 'bold', cursor: 'pointer'}}
-          >
-            ⬆ Import CSV (Apply Changes)
-            <input 
-              type="file" 
-              accept=".csv" 
-              onChange={onImport} 
-              style={{display: 'none'}} 
-            />
-          </label>
-        </div>
-        <p className="backup-note">Export your data, edit it in Excel/Sheets (keep the ID column as-is), and import it back to save changes.</p>
-      </section>
-      {/* --- NEW BULK EDIT SECTION END --- */}
-
       <section className="dash-section">
         <h2>Overall Performance</h2>
         <div className="stat-grid">
@@ -2133,57 +2228,35 @@ function Dashboard({ onExport, onImport }) {
             <div className="stat-label">Total Cost</div>
             <div className="stat-value">{formatCurrency(financials.total_cost)}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Fees & Shipping</div>
-            <div className="stat-value">{formatCurrency(parseFloat(financials.total_fees) + parseFloat(financials.total_shipping))}</div>
-          </div>
-          <div className="stat-card highlight">
+          <div className="stat-card highlight profit-card">
             <div className="stat-label">Net Profit</div>
             <div className="stat-value">{formatCurrency(financials.net_profit)}</div>
           </div>
         </div>
       </section>
 
-      <section className="dash-section">
-        <h2>Expiring Listings <span className="section-sub">sorted by soonest</span></h2>
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Platform</th>
-              <th>Asking Price</th>
-              <th>Days Left</th>
-            </tr>
-          </thead>
-          <tbody>
-            {expiring.map(l => (
-              <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent' : ''}>
-                <td>{l.name}</td>
-                <td>{l.platform}</td>
-                <td>{formatCurrency(l.asking_price)}</td>
-                <td>{l.days_left} days</td>
-              </tr>
-            ))}
-            {expiring.length === 0 && <tr><td colSpan="4" style={{textAlign:'center', color:'#888'}}>No active listings</td></tr>}
-          </tbody>
-        </table>
-      </section>
+      <section className="dash-section bulk-section">
+        <h2>Inventory Tools</h2>
+        <div className="backup-actions">
+          {/* CSV Group */}
+          <div className="tool-group">
+            <button onClick={onExport} className="btn-backup csv-btn">⬇ Export CSV</button>
+            <label className="btn-restore csv-btn">
+              ⬆ Import CSV
+              <input type="file" accept=".csv" onChange={onImport} style={{display: 'none'}} />
+            </label>
+          </div>
 
-      <section className="dash-section">
-        <h2>Currently Listed by Marketplace</h2>
-        <table className="dash-table">
-          <thead>
-            <tr><th>Platform</th><th>Active Listings</th></tr>
-          </thead>
-          <tbody>
-            {byMarketplaceListed.map(m => (
-              <tr key={m.platform}>
-                <td>{m.platform}</td>
-                <td>{m.listed_count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {/* System Backup Group */}
+          <div className="tool-group">
+            <button onClick={() => window.open(`${API}/backup`, '_blank')} className="btn-backup">💾 Save JSON Backup</button>
+            <label className="btn-restore">
+              📂 Restore JSON
+              <input type="file" accept=".json" onChange={onRestore} style={{display: 'none'}} />
+            </label>
+          </div>
+        </div>
+        <p className="backup-note">Use CSV for bulk updates. Use JSON for full database recovery.</p>
       </section>
 
       <section className="dash-section">
@@ -2194,7 +2267,6 @@ function Dashboard({ onExport, onImport }) {
               <th>Platform</th>
               <th>Sold</th>
               <th>Gross</th>
-              <th>Fees</th>
               <th>Net Profit</th>
             </tr>
           </thead>
@@ -2204,8 +2276,7 @@ function Dashboard({ onExport, onImport }) {
                 <td>{m.platform}</td>
                 <td>{m.total_sold}</td>
                 <td>{formatCurrency(m.gross_income)}</td>
-                <td>{formatCurrency(parseFloat(m.total_fees) + parseFloat(m.total_shipping))}</td>
-                <td className="profit">{formatCurrency(m.net_profit)}</td>
+                <td className="profit-text">{formatCurrency(m.net_profit)}</td>
               </tr>
             ))}
           </tbody>
@@ -2221,7 +2292,7 @@ function Dashboard({ onExport, onImport }) {
               <th>Sold</th>
               <th>Listed</th>
               <th>At Home</th>
-              <th>Net Profit</th>
+              <th>Profit</th>
             </tr>
           </thead>
           <tbody>
@@ -2231,13 +2302,35 @@ function Dashboard({ onExport, onImport }) {
                 <td>{c.total_sold}</td>
                 <td>{c.total_listed}</td>
                 <td>{c.total_at_home}</td>
-                <td className="profit">{formatCurrency(c.net_profit)}</td>
+                <td className="profit-text">{formatCurrency(c.net_profit)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </section>
 
+      <section className="dash-section">
+        <h2>Expiring Listings</h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Platform</th>
+              <th>Days Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expiring.map(l => (
+              <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent-row' : ''}>
+                <td>{l.name}</td>
+                <td>{l.platform}</td>
+                <td className={l.days_left <= 7 ? 'urgent-text' : ''}>{l.days_left} days</td>
+              </tr>
+            ))}
+            {expiring.length === 0 && <tr><td colSpan="3" style={{textAlign:'center', color:'#888'}}>No listings expiring soon</td></tr>}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }
@@ -2246,7 +2339,10 @@ function ListingModal({ item, onClose, refresh }) {
   const [form, setForm] = useState({
     platform: 'eBay',
     asking_price: '',
-    listing_url: ''
+    listing_url: '',
+    offers_enabled: false,
+    min_offer_amount: '',
+    expiration_days: 30
   });
   const [error, setError] = useState('');
 
@@ -2259,7 +2355,10 @@ function ListingModal({ item, onClose, refresh }) {
       item_id: item.id,
       platform: form.platform,
       asking_price: parseFloat(form.asking_price),
-      listing_url: form.listing_url
+      listing_url: form.listing_url,
+      offers_enabled: form.offers_enabled,
+      min_offer_amount: form.offers_enabled ? parseFloat(form.min_offer_amount) : null,
+      expiration_days: parseInt(form.expiration_days) || 30
     });
     refresh();
     onClose();
@@ -2270,6 +2369,8 @@ function ListingModal({ item, onClose, refresh }) {
       <div className="modal">
         <h2>List "{item.name}"</h2>
         <p className="modal-sub">Where are you listing this?</p>
+        
+        <label className="modal-label">Platform</label>
         <select value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}>
           <option>eBay</option>
           <option>Mercari</option>
@@ -2277,17 +2378,30 @@ function ListingModal({ item, onClose, refresh }) {
           <option>OfferUp</option>
           <option>Poshmark</option>
         </select>
-        <input
-          placeholder="Asking price ($)"
-          type="number"
-          value={form.asking_price}
-          onChange={e => setForm({...form, asking_price: e.target.value})}
-        />
-        <input
-          placeholder="Listing URL (optional)"
-          value={form.listing_url}
-          onChange={e => setForm({...form, listing_url: e.target.value})}
-        />
+
+        <label className="modal-label">Asking Price ($)</label>
+        <input type="number" value={form.asking_price} onChange={e => setForm({...form, asking_price: e.target.value})} />
+
+        <div className="modal-checkbox-group">
+          <label>
+            <input type="checkbox" checked={form.offers_enabled} onChange={e => setForm({...form, offers_enabled: e.target.checked})} />
+            Allow Offers
+          </label>
+        </div>
+
+        {form.offers_enabled && (
+          <>
+            <label className="modal-label">Floor Price ($)</label>
+            <input type="number" value={form.min_offer_amount} onChange={e => setForm({...form, min_offer_amount: e.target.value})} />
+          </>
+        )}
+
+        <label className="modal-label">Expiration (Days)</label>
+        <input type="number" value={form.expiration_days} onChange={e => setForm({...form, expiration_days: e.target.value})} />
+
+        <label className="modal-label">URL</label>
+        <input value={form.listing_url} onChange={e => setForm({...form, listing_url: e.target.value})} />
+
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
@@ -2299,25 +2413,15 @@ function ListingModal({ item, onClose, refresh }) {
 }
 
 function SoldModal({ item, onClose, refresh }) {
-  const [form, setForm] = useState({
-    sale_price: '',
-    platform_fees: '',
-    shipping_costs: '',
-    tracking_url: ''
-  });
+  const [form, setForm] = useState({ sale_price: '', platform_fees: '', shipping_costs: '', tracking_url: '' });
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (!form.sale_price) {
-      setError('Please enter a sale price.');
-      return;
-    }
+    if (!form.sale_price) { setError('Sale price required.'); return; }
     const listingRes = await axios.get(`${API}/listings/${item.id}`);
     const listing = listingRes.data[0];
-    if (!listing) {
-      setError('No listing found for this item.');
-      return;
-    }
+    if (!listing) { setError('No listing found.'); return; }
+    
     await axios.patch(`${API}/listings/${listing.id}/sold`, {
       item_id: item.id,
       sale_price: parseFloat(form.sale_price),
@@ -2332,35 +2436,15 @@ function SoldModal({ item, onClose, refresh }) {
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h2>Mark "{item.name}" as Sold</h2>
-        <p className="modal-sub">Enter the sale details</p>
-        <input
-          placeholder="Sale price ($)"
-          type="number"
-          value={form.sale_price}
-          onChange={e => setForm({...form, sale_price: e.target.value})}
-        />
-        <input
-          placeholder="Platform fees ($) — optional"
-          type="number"
-          value={form.platform_fees}
-          onChange={e => setForm({...form, platform_fees: e.target.value})}
-        />
-        <input
-          placeholder="Shipping costs ($) — optional"
-          type="number"
-          value={form.shipping_costs}
-          onChange={e => setForm({...form, shipping_costs: e.target.value})}
-        />
-        <input
-          placeholder="Tracking URL (optional)"
-          value={form.tracking_url}
-          onChange={e => setForm({...form, tracking_url: e.target.value})}
-        />
+        <h2>Mark "{item.name}" Sold</h2>
+        <input placeholder="Sale price ($)" type="number" value={form.sale_price} onChange={e => setForm({...form, sale_price: e.target.value})} />
+        <input placeholder="Fees ($)" type="number" value={form.platform_fees} onChange={e => setForm({...form, platform_fees: e.target.value})} />
+        <input placeholder="Shipping ($)" type="number" value={form.shipping_costs} onChange={e => setForm({...form, shipping_costs: e.target.value})} />
+        <input placeholder="Tracking URL" value={form.tracking_url} onChange={e => setForm({...form, tracking_url: e.target.value})} />
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
-          <button onClick={handleSubmit} className="btn-confirm">Confirm Sale</button>
+          <button onClick={handleSubmit} className="btn-confirm">Confirm</button>
         </div>
       </div>
     </div>
@@ -2380,7 +2464,8 @@ function EditModal({ item, onClose, refresh }) {
     dimensions: item.dimensions || '',
     color: item.color || '',
     condition: item.condition || '',
-    sku: item.sku || ''
+    sku: item.sku || '',
+    notes: item.notes || ''
   });
 
   const handleSubmit = async () => {
@@ -2408,8 +2493,6 @@ function EditModal({ item, onClose, refresh }) {
         <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
         <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
         <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
-        <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
-        <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
         <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
           <option value="">Condition</option>
           <option>New</option>
@@ -2419,7 +2502,7 @@ function EditModal({ item, onClose, refresh }) {
           <option>Poor</option>
         </select>
         <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
-        <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        <textarea placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleSubmit} className="btn-confirm">Save Changes</button>
@@ -2440,7 +2523,7 @@ function DeleteModal({ item, onClose, refresh }) {
     <div className="modal-overlay">
       <div className="modal">
         <h2>Delete "{item.name}"?</h2>
-        <p className="modal-sub">This will permanently delete the item and all its listings. This cannot be undone.</p>
+        <p className="modal-sub">This will permanently delete the item. This cannot be undone.</p>
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleDelete} className="btn-delete-confirm">Delete</button>
@@ -2452,7 +2535,6 @@ function DeleteModal({ item, onClose, refresh }) {
 
 function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
   const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <div className="menu-wrapper" onBlur={() => setTimeout(() => setMenuOpen(false), 150)}>
       <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
@@ -2470,14 +2552,10 @@ function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
 function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
   const [items, setItems] = useState([]);
 
-  const fetchItems = () => {
+  useEffect(() => {
     axios.get(`${API}/items`).then(res => {
       setItems(res.data.filter(i => i.status === 'listed'));
     });
-  };
-
-  useEffect(() => {
-    fetchItems();
   }, [refresh]);
 
   const platforms = [...new Set(items.map(i => i.platform).filter(Boolean))];
@@ -2497,34 +2575,39 @@ function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
           {items.filter(i => i.platform === platform).map(item => (
             <div key={item.id} className="platform-card">
               <div className="platform-card-name">{item.name}</div>
-              <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
-              <div className="platform-card-row"><span>Description</span><span>{item.description || '—'}</span></div>
-              <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>
+              
+              {/* Core Financials & Status */}
+              <div className="platform-card-row"><span>Asking Price</span><span className="highlight-price">{formatCurrency(item.asking_price)}</span></div>
               <div className="platform-card-row"><span>Cost</span><span>{formatCurrency(item.cost)}</span></div>
-              <div className="platform-card-row"><span>Asking Price</span><span>{formatCurrency(item.asking_price)}</span></div>
               <div className="platform-card-row"><span>Days Listed</span><span>{Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days</span></div>
-              <div className="platform-card-row"><span>Photos Ready</span><span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span></div>
+              
+              <hr className="card-divider" />
+              
+              {/* Product Details */}
+              <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
               {item.brand && <div className="platform-card-row"><span>Brand</span><span>{item.brand}</span></div>}
               {item.model && <div className="platform-card-row"><span>Model</span><span>{item.model}</span></div>}
+              {item.sku && <div className="platform-card-row"><span>SKU</span><span className="sku-text">{item.sku}</span></div>}
+              
+              {/* Physical Logistics */}
+              {item.location && <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>}
               {item.dimensions && <div className="platform-card-row"><span>Dimensions</span><span>{item.dimensions}</span></div>}
               {item.color && <div className="platform-card-row"><span>Color</span><span>{item.color}</span></div>}
               {item.condition && <div className="platform-card-row"><span>Condition</span><span>{item.condition}</span></div>}
-              {item.sku && <div className="platform-card-row"><span>SKU</span><span>{item.sku}</span></div>}
-              {item.notes && <div className="platform-card-row"><span>Notes</span><span>{item.notes}</span></div>}
-              {item.listing_url && (
-                <div className="platform-card-row">
-                  <span>Listing</span>
-                  <a href={item.listing_url} target="_blank" rel="noreferrer" className="card-link">View Listing</a>
+              
+              {/* Notes & URLs */}
+              {item.notes && (
+                <div className="platform-card-notes">
+                  <strong>Notes:</strong> {item.notes}
                 </div>
               )}
-              {item.tracking_url && (
-                <div className="platform-card-row">
-                  <span>Tracking</span>
-                  <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
-                </div>
-              )}
-              {item.quantity > 1 && <div className="platform-card-row"><span>Quantity</span><span>{item.quantity}</span></div>}
-              <div className="platform-card-actions">
+              
+              <div className="platform-card-footer">
+                {item.listing_url && (
+                  <a href={item.listing_url} target="_blank" rel="noreferrer" className="btn-view-listing">
+                    🔗 View Listing
+                  </a>
+                )}
                 <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />
               </div>
             </div>

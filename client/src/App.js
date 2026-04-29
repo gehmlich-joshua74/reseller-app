@@ -57,7 +57,7 @@ function App() {
     reader.onload = async (e) => {
       try {
         const json = JSON.parse(e.target.result);
-        const response = await axios.post(`${API}/restore`, json);
+        const response = await axios.post(`${API}/backup/restore`, json);
         alert(response.data.message || "Database restored successfully!");
         fetchItems();
       } catch (err) {
@@ -223,6 +223,8 @@ function AddItemForm({ refresh, setView }) {
       <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
       <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
       <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
+      <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
+      <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
       <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
         <option value="">Condition</option>
         <option>New</option>
@@ -261,6 +263,14 @@ function Dashboard({ onExport, onImport, onRestore }) {
           <div className="stat-card">
             <div className="stat-label">Total Cost</div>
             <div className="stat-value">{formatCurrency(financials.total_cost)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Platform Fees</div>
+            <div className="stat-value">{formatCurrency(financials.total_fees)}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Shipping Costs</div>
+            <div className="stat-value">{formatCurrency(financials.total_shipping)}</div>
           </div>
           <div className="stat-card highlight profit-card">
             <div className="stat-label">Net Profit</div>
@@ -387,7 +397,7 @@ function ListingModal({ item, onClose, refresh }) {
     }
     await axios.post(`${API}/listings`, {
       item_id: item.id,
-      platform: form.platform,
+      platform: form.platform === 'Other' ? (form.customPlatform.trim() || 'Other') : form.platform,
       asking_price: parseFloat(form.asking_price),
       listing_url: form.listing_url,
       offers_enabled: form.offers_enabled,
@@ -405,13 +415,22 @@ function ListingModal({ item, onClose, refresh }) {
         <p className="modal-sub">Where are you listing this?</p>
         
         <label className="modal-label">Platform</label>
-        <select value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}>
+        <select value={form.platform} onChange={e => setForm({...form, platform: e.target.value, customPlatform: ''})}>
           <option>eBay</option>
           <option>Mercari</option>
           <option>Facebook Marketplace</option>
           <option>OfferUp</option>
           <option>Poshmark</option>
+          <option>Craigslist</option>
+          <option>Other</option>
         </select>
+        {form.platform === 'Other' && (
+          <input
+            placeholder="Enter platform name"
+            value={form.customPlatform || ''}
+            onChange={e => setForm({...form, customPlatform: e.target.value})}
+          />
+        )}
 
         <label className="modal-label">Asking Price ($)</label>
         <input type="number" value={form.asking_price} onChange={e => setForm({...form, asking_price: e.target.value})} />
@@ -447,16 +466,23 @@ function ListingModal({ item, onClose, refresh }) {
 }
 
 function SoldModal({ item, onClose, refresh }) {
-  const [form, setForm] = useState({ sale_price: '', platform_fees: '', shipping_costs: '', tracking_url: '' });
+  const [listings, setListings] = useState([]);
+  const [form, setForm] = useState({ listing_id: '', sale_price: '', platform_fees: '', shipping_costs: '', tracking_url: '' });
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    axios.get(`${API}/listings/${item.id}`).then(res => {
+      const active = res.data.filter(l => !l.sold_at);
+      setListings(active);
+      if (active.length === 1) setForm(f => ({ ...f, listing_id: active[0].id }));
+    });
+  }, [item.id]);
 
   const handleSubmit = async () => {
     if (!form.sale_price) { setError('Sale price required.'); return; }
-    const listingRes = await axios.get(`${API}/listings/${item.id}`);
-    const listing = listingRes.data[0];
-    if (!listing) { setError('No listing found.'); return; }
-    
-    await axios.patch(`${API}/listings/${listing.id}/sold`, {
+    if (!form.listing_id) { setError('Please select which platform this sold on.'); return; }
+
+    await axios.patch(`${API}/listings/${form.listing_id}/sold`, {
       item_id: item.id,
       sale_price: parseFloat(form.sale_price),
       platform_fees: parseFloat(form.platform_fees || 0),
@@ -471,6 +497,23 @@ function SoldModal({ item, onClose, refresh }) {
     <div className="modal-overlay">
       <div className="modal">
         <h2>Mark "{item.name}" Sold</h2>
+        {listings.length > 1 && (
+          <>
+            <label className="modal-label">Sold on which platform?</label>
+            <select value={form.listing_id} onChange={e => setForm({...form, listing_id: e.target.value})}>
+              <option value="">Select platform...</option>
+              {listings.map(l => (
+                <option key={l.id} value={l.id}>{l.platform} — asking {formatCurrency(l.asking_price)}</option>
+              ))}
+            </select>
+          </>
+        )}
+        {listings.length === 1 && (
+          <p className="modal-sub">Platform: <strong>{listings[0].platform}</strong></p>
+        )}
+        {listings.length === 0 && (
+          <p className="modal-error">No active listings found for this item.</p>
+        )}
         <input placeholder="Sale price ($)" type="number" value={form.sale_price} onChange={e => setForm({...form, sale_price: e.target.value})} />
         <input placeholder="Fees ($)" type="number" value={form.platform_fees} onChange={e => setForm({...form, platform_fees: e.target.value})} />
         <input placeholder="Shipping ($)" type="number" value={form.shipping_costs} onChange={e => setForm({...form, shipping_costs: e.target.value})} />
@@ -635,7 +678,30 @@ function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
                   <strong>Notes:</strong> {item.notes}
                 </div>
               )}
-              
+
+              <hr className="card-divider" />
+
+              {/* Offers & Expiry */}
+              <div className="platform-card-row">
+                <span>Offers Enabled</span>
+                <span>{item.offers_enabled ? '✅ Yes' : '❌ No'}</span>
+              </div>
+              {item.offers_enabled && item.min_offer_amount && (
+                <div className="platform-card-row">
+                  <span>Floor Price</span>
+                  <span>{formatCurrency(item.min_offer_amount)}</span>
+                </div>
+              )}
+              <div className="platform-card-row">
+                <span>Expires In</span>
+                <span style={{
+                  color: Math.floor((new Date(item.listed_at).getTime() + (item.expiration_days || 30) * 86400000 - Date.now()) / 86400000) <= 7 ? '#e94560' : '#333',
+                  fontWeight: Math.floor((new Date(item.listed_at).getTime() + (item.expiration_days || 30) * 86400000 - Date.now()) / 86400000) <= 7 ? '700' : 'normal'
+                }}>
+                  {Math.floor((new Date(item.listed_at).getTime() + (item.expiration_days || 30) * 86400000 - Date.now()) / 86400000)} days
+                </span>
+              </div>
+
               <div className="platform-card-footer">
                 {item.listing_url && (
                   <a href={item.listing_url} target="_blank" rel="noreferrer" className="btn-view-listing">

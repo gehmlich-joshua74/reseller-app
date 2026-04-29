@@ -6,7 +6,7 @@ const pool = require('../db');
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT i.*, 
+      SELECT i.*,
         l.listed_at,
         l.sold_at,
         l.platform,
@@ -15,9 +15,17 @@ router.get('/', async (req, res) => {
         l.platform_fees,
         l.shipping_costs,
         l.listing_url,
-        l.tracking_url
+        l.tracking_url,
+        l.offers_enabled,
+        l.min_offer_amount,
+        l.expiration_days
       FROM items i
-      LEFT JOIN listings l ON l.item_id = i.id
+      LEFT JOIN LATERAL (
+        SELECT * FROM listings
+        WHERE item_id = i.id
+        ORDER BY listed_at DESC
+        LIMIT 1
+      ) l ON true
       ORDER BY i.updated_at DESC
     `);
     res.json(result.rows);

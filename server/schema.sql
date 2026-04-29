@@ -29,17 +29,20 @@ CREATE TABLE IF NOT EXISTS "items" (
 );
 
 CREATE TABLE IF NOT EXISTS "listings" (
-  "id"             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "item_id"        UUID NOT NULL REFERENCES "items"("id"),
-  "platform"       VARCHAR(255),
-  "asking_price"   DECIMAL,
-  "listed_at"      TIMESTAMP DEFAULT now(),
-  "sold_at"        TIMESTAMP,
-  "sale_price"     DECIMAL,
-  "platform_fees"  DECIMAL,
-  "shipping_costs" DECIMAL,
-  "listing_url"    TEXT,
-  "tracking_url"   TEXT
+  "id"                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "item_id"           UUID NOT NULL REFERENCES "items"("id"),
+  "platform"          VARCHAR(255),
+  "asking_price"      DECIMAL,
+  "listed_at"         TIMESTAMP DEFAULT now(),
+  "sold_at"           TIMESTAMP,
+  "sale_price"        DECIMAL,
+  "platform_fees"     DECIMAL,
+  "shipping_costs"    DECIMAL,
+  "listing_url"       TEXT,
+  "tracking_url"      TEXT,
+  "offers_enabled"    BOOLEAN DEFAULT false,
+  "min_offer_amount"  DECIMAL,
+  "expiration_days"   INTEGER DEFAULT 30
 );
 
 CREATE OR REPLACE FUNCTION update_updated_at()
