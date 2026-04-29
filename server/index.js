@@ -4,6 +4,7 @@ const pool = require('./db');
 const itemsRouter = require('./routes/items');
 const listingsRouter = require('./routes/listings');
 const analyticsRouter = require('./routes/analytics');
+const backupRouter = require('./routes/backup');
 require('dotenv').config();
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use('/api/items', itemsRouter);
 app.use('/api/listings', listingsRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/backup', backupRouter);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Reseller API is running' });
@@ -28,6 +30,6 @@ app.get('/test-db', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

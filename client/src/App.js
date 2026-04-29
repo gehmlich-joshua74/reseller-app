@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API = 'http://localhost:5001/api';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 const formatCurrency = (amount) => {
   return parseFloat(amount || 0).toLocaleString('en-US', {
     style: 'currency',
@@ -225,8 +225,33 @@ function Dashboard() {
 
   const { financials, byMarketplaceListed, byMarketplaceFinancials, byCategory, expiring } = data;
 
+  const handleBackup = () => {
+    window.open(`${API}/backup`, '_blank');
+  };
+
+  const handleRestore = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    const json = JSON.parse(text);
+    if (!window.confirm('This will REPLACE all your current data with the backup. Are you sure?')) return;
+    await axios.post(`${API}/backup/restore`, json);
+    alert('Database restored successfully. Refresh the page.');
+  };
+
   return (
     <div className="dashboard">
+      <section className="dash-section">
+        <h2>Backup & Restore</h2>
+        <div className="backup-actions">
+          <button onClick={handleBackup} className="btn-backup">⬇ Download Backup</button>
+          <label className="btn-restore">
+            ⬆ Restore from Backup
+            <input type="file" accept=".json" onChange={handleRestore} style={{display: 'none'}} />
+          </label>
+        </div>
+        <p className="backup-note">Download saves everything. Restore replaces all current data.</p>
+      </section>
 
       <section className="dash-section">
         <h2>Overall Performance</h2>
