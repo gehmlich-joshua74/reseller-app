@@ -64,6 +64,7 @@ server/
   routes/
     analytics.js
     backup.js
+    bulk.js
     items.js
     listings.js
   db.js
@@ -573,6 +574,95 @@ router.post('/restore', async (req, res) => {
 module.exports = router;
 </file>
 
+<file path="server/routes/bulk.js">
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+const { Parser } = require('json2csv');
+const csv = require('csv-parser');
+const stream = require('stream');
+
+// 1. EXPORT: Download all items as CSV
+router.get('/export', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM items ORDER BY created_at DESC');
+    const fields = ['id', 'name', 'category', 'status', 'cost', 'location', 'quantity', 'brand', 'model', 'sku', 'notes'];
+    const json2csvParser = new Parser({ fields });
+    const csvData = json2csvParser.parse(result.rows);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=inventory_bulk_edit.csv');
+    res.status(200).send(csvData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. IMPORT: Upload CSV and update items (Bulk Edit)
+// IMPORT: Upload CSV to update existing items OR add new ones
+router.post('/import', express.text(), async (req, res) => {
+  const results = [];
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(req.body);
+
+  bufferStream
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      try {
+        let updatedCount = 0;
+        let createdCount = 0;
+
+        for (const row of results) {
+          if (row.id && row.id.trim() !== "") {
+            // OPTION A: Update existing item
+            await pool.query(
+              `UPDATE items SET 
+                name=$1, category=$2, status=$3, cost=$4, location=$5, 
+                quantity=$6, brand=$7, model=$8, sku=$9, notes=$10, updated_at=now()
+               WHERE id=$11`,
+              [row.name, row.category, row.status, row.cost, row.location, 
+               row.quantity, row.brand, row.model, row.sku, row.notes, row.id]
+            );
+            updatedCount++;
+          } else {
+            // OPTION B: Create new item (No ID provided)
+            await pool.query(
+              `INSERT INTO items (
+                name, category, status, cost, location, 
+                quantity, brand, model, sku, notes, added_by
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+              [
+                row.name, 
+                row.category || 'Other', 
+                row.status || 'at_home', 
+                row.cost || 0, 
+                row.location || '', 
+                row.quantity || 1, 
+                row.brand || '', 
+                row.model || '', 
+                row.sku || '', 
+                row.notes || '',
+                '6e9219cc-fc42-4511-be63-98536283cc50' // Your default User ID
+              ]
+            );
+            createdCount++;
+          }
+        }
+        res.json({ 
+          success: true, 
+          message: `Process complete: Updated ${updatedCount} items and added ${createdCount} new items.` 
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database update failed. Check your CSV columns." });
+      }
+    });
+});
+
+module.exports = router;
+</file>
+
 <file path="server/db.js">
 const { Pool } = require('pg');
 require('dotenv').config();
@@ -586,32 +676,6 @@ const pool = new Pool({
 });
 
 module.exports = pool;
-</file>
-
-<file path="server/package.json">
-{
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "pg": "^8.20.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
-  }
-}
 </file>
 
 <file path=".gitignore">
@@ -715,6 +779,34 @@ I built this for me and my wife after we started a reselling business and found 
 - [ ] Photo upload support
 </file>
 
+<file path="server/package.json">
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "json2csv": "^6.0.0-alpha.2",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
+</file>
+
 <file path="server/routes/listings.js">
 const express = require('express');
 const router = express.Router();
@@ -802,6 +894,7 @@ const itemsRouter = require('./routes/items');
 const listingsRouter = require('./routes/listings');
 const analyticsRouter = require('./routes/analytics');
 const backupRouter = require('./routes/backup');
+const bulkRouter = require('./routes/bulk');
 require('dotenv').config();
 
 const app = express();
@@ -812,6 +905,8 @@ app.use('/api/items', itemsRouter);
 app.use('/api/listings', listingsRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/backup', backupRouter);
+app.use('/api/bulk', bulkRouter);
+
 
 app.get('/', (req, res) => {
   res.json({ message: 'Reseller API is running' });
@@ -1746,6 +1841,29 @@ function App() {
     setItems(res.data);
   };
 
+  const handleExportCSV = () => {
+    // This opens the export route in a new tab to trigger the download
+    window.open(`${API}/bulk/export`, '_blank');
+  };
+
+  const handleImportCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const text = await file.text();
+    try {
+      // Sending the CSV text to the new import route
+      const response = await axios.post(`${API}/bulk/import`, text, {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+      alert(response.data.message);
+      fetchItems(); // Refresh the list automatically after import
+    } catch (err) {
+      console.error("Import failed", err);
+      alert("Failed to import CSV. Check console for details.");
+    }
+  };
+
   const atHome = items.filter(i => i.status === 'at_home');
   const listed = items.filter(i => i.status === 'listed');
   const sold = items.filter(i => i.status === 'sold');
@@ -1791,7 +1909,12 @@ function App() {
       {soldItem && <SoldModal item={soldItem} onClose={() => setSoldItem(null)} refresh={fetchItems} />}
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
       {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
-      {view === 'dashboard' && <Dashboard />}
+      {view === 'dashboard' && (
+  <Dashboard 
+    onExport={handleExportCSV} 
+    onImport={handleImportCSV} 
+  />
+)}
       {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} refresh={items} />}
     </div>
   );
@@ -1932,7 +2055,7 @@ function AddItemForm({ refresh, setView }) {
   );
 }
 
-function Dashboard() {
+function Dashboard({ onExport, onImport }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -1970,6 +2093,34 @@ function Dashboard() {
         </div>
         <p className="backup-note">Download saves everything. Restore replaces all current data.</p>
       </section>
+
+      {/* --- NEW BULK EDIT SECTION START --- */}
+      <section className="dash-section bulk-section">
+        <h2>Bulk Inventory Actions</h2>
+        <div className="backup-actions">
+          <button 
+            onClick={onExport} 
+            className="btn-backup" 
+            style={{backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold'}}
+          >
+            ⬇ Export CSV for Bulk Edit
+          </button>
+          <label 
+            className="btn-restore" 
+            style={{backgroundColor: '#3498db', color: 'white', fontWeight: 'bold', cursor: 'pointer'}}
+          >
+            ⬆ Import CSV (Apply Changes)
+            <input 
+              type="file" 
+              accept=".csv" 
+              onChange={onImport} 
+              style={{display: 'none'}} 
+            />
+          </label>
+        </div>
+        <p className="backup-note">Export your data, edit it in Excel/Sheets (keep the ID column as-is), and import it back to save changes.</p>
+      </section>
+      {/* --- NEW BULK EDIT SECTION END --- */}
 
       <section className="dash-section">
         <h2>Overall Performance</h2>

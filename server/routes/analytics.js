@@ -79,8 +79,9 @@ router.get('/', async (req, res) => {
     `);
 
     // Expiring listings
+    // Expiring listings
     const activeListing = await pool.query(`
-      SELECT i.name, i.category, l.platform, l.listed_at, l.asking_price, l.id as listing_id
+      SELECT i.name, i.category, l.platform, l.listed_at, l.asking_price, l.id as listing_id, l.expiration_days, l.min_offer_amount
       FROM listings l
       JOIN items i ON i.id = l.item_id
       WHERE l.sold_at IS NULL
@@ -88,7 +89,8 @@ router.get('/', async (req, res) => {
     `);
 
     const expiring = activeListing.rows.map(listing => {
-      const days = PLATFORM_EXPIRY_DAYS[listing.platform] || 30;
+      // Use the database value 'expiration_days'. If it's missing for some reason, default to 30.
+      const days = listing.expiration_days || 30;
       const listedAt = new Date(listing.listed_at);
       const expiresAt = new Date(listedAt.getTime() + days * 24 * 60 * 60 * 1000);
       const daysLeft = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));

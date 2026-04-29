@@ -29,7 +29,6 @@ function App() {
   };
 
   const handleExportCSV = () => {
-    // This opens the export route in a new tab to trigger the download
     window.open(`${API}/bulk/export`, '_blank');
   };
 
@@ -39,16 +38,34 @@ function App() {
 
     const text = await file.text();
     try {
-      // Sending the CSV text to the new import route
       const response = await axios.post(`${API}/bulk/import`, text, {
         headers: { 'Content-Type': 'text/plain' }
       });
       alert(response.data.message);
-      fetchItems(); // Refresh the list automatically after import
+      fetchItems();
     } catch (err) {
       console.error("Import failed", err);
       alert("Failed to import CSV. Check console for details.");
     }
+  };
+
+  const handleRestore = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        const response = await axios.post(`${API}/restore`, json);
+        alert(response.data.message || "Database restored successfully!");
+        fetchItems();
+      } catch (err) {
+        console.error("Restore failed", err);
+        alert("Failed to restore. Ensure the file is a valid backup JSON.");
+      }
+    };
+    reader.readAsText(file);
   };
 
   const atHome = items.filter(i => i.status === 'at_home');
@@ -63,7 +80,7 @@ function App() {
           <button onClick={() => setView('inventory')} className={view === 'inventory' ? 'active' : ''}>Inventory</button>
           <button onClick={() => setView('byplatform')} className={view === 'byplatform' ? 'active' : ''}>By Platform</button>
           <button onClick={() => setView('dashboard')} className={view === 'dashboard' ? 'active' : ''}>Dashboard</button>
-<button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
+          <button onClick={() => setView('add')} className={view === 'add' ? 'active' : ''}>+ Add Item</button>
         </nav>
       </header>
 
@@ -97,11 +114,12 @@ function App() {
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} refresh={fetchItems} />}
       {deleteItem && <DeleteModal item={deleteItem} onClose={() => setDeleteItem(null)} refresh={fetchItems} />}
       {view === 'dashboard' && (
-  <Dashboard 
-    onExport={handleExportCSV} 
-    onImport={handleImportCSV} 
-  />
-)}
+        <Dashboard 
+          onExport={handleExportCSV} 
+          onImport={handleImportCSV} 
+          onRestore={handleRestore} 
+        />
+      )}
       {view === 'byplatform' && <ByPlatform onSold={setSoldItem} onEdit={setEditItem} onDelete={setDeleteItem} refresh={items} />}
     </div>
   );
@@ -109,13 +127,8 @@ function App() {
 
 function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const handleList = () => {
-    onList(item);
-  };
-
-  const handleSold = () => {
-    onSold(item);
-  };
+  const handleList = () => onList(item);
+  const handleSold = () => onSold(item);
 
   const handleRevert = async () => {
     await axios.patch(`${API}/items/${item.id}/revert`);
@@ -141,7 +154,7 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
         <div className="item-meta">Sold for: {formatCurrency(item.sale_price)}</div>
       )}
       {item.status === 'sold' && item.sold_at && (
-        <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+        <div className="item-meta">Sold on: {new Date(item.sold_at).toLocaleDateString()}</div>
       )}
       {item.status === 'sold' && item.tracking_url && (
         <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
@@ -161,18 +174,10 @@ function ItemCard({ item, refresh, onList, onSold, onEdit, onDelete }) {
           <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
           {menuOpen && (
             <div className="menu-dropdown">
-              {item.status === 'at_home' && (
-                <button onClick={() => { handleList(); setMenuOpen(false); }}>Mark as Listed</button>
-              )}
-              {item.status === 'listed' && (
-                <button onClick={() => { handleSold(); setMenuOpen(false); }}>Mark as Sold</button>
-              )}
-              {item.status === 'listed' && (
-                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Unlist</button>
-              )}
-              {item.status === 'sold' && (
-                <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Undo Sale</button>
-              )}
+              {item.status === 'at_home' && <button onClick={() => { handleList(); setMenuOpen(false); }}>Mark as Listed</button>}
+              {item.status === 'listed' && <button onClick={() => { handleSold(); setMenuOpen(false); }}>Mark as Sold</button>}
+              {item.status === 'listed' && <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Unlist</button>}
+              {item.status === 'sold' && <button onClick={() => { handleRevert(); setMenuOpen(false); }}>Undo Sale</button>}
               <button onClick={() => { onEdit(item); setMenuOpen(false); }}>Edit</button>
               <button className="danger" onClick={() => { onDelete(item); setMenuOpen(false); }}>Delete</button>
             </div>
@@ -191,18 +196,11 @@ function AddItemForm({ refresh, setView }) {
   });
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      alert('Please enter an item name.');
+    if (!form.name.trim() || (!form.cost && form.cost !== 0)) {
+      alert('Name and Cost are required.');
       return;
     }
-    if (!form.cost && form.cost !== 0) {
-      alert('Please enter a cost. Use 0 if it was free.');
-      return;
-    }
-    await axios.post(`${API}/items`, {
-      ...form,
-      added_by: '6e9219cc-fc42-4511-be63-98536283cc50'
-    });
+    await axios.post(`${API}/items`, { ...form, added_by: '6e9219cc-fc42-4511-be63-98536283cc50' });
     refresh();
     setView('inventory');
   };
@@ -221,12 +219,10 @@ function AddItemForm({ refresh, setView }) {
         <option>Other</option>
       </select>
       <input placeholder="Cost ($) *" type="number" value={form.cost} onChange={e => setForm({...form, cost: e.target.value})} />
-      <input placeholder="Location (e.g. Basement)" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+      <input placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
       <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
       <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
       <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
-      <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
-      <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
       <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
         <option value="">Condition</option>
         <option>New</option>
@@ -236,79 +232,25 @@ function AddItemForm({ refresh, setView }) {
         <option>Poor</option>
       </select>
       <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
-      <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+      <textarea placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
       <button onClick={handleSubmit}>Add Item</button>
     </div>
   );
 }
 
-function Dashboard({ onExport, onImport }) {
+function Dashboard({ onExport, onImport, onRestore }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
     axios.get(`${API}/analytics`).then(res => setData(res.data));
   }, []);
 
-  if (!data) return <div style={{padding: '2rem'}}>Loading...</div>;
+  if (!data) return <div style={{padding: '2rem'}}>Loading analytics...</div>;
 
-  const { financials, byMarketplaceListed, byMarketplaceFinancials, byCategory, expiring } = data;
-
-  const handleBackup = () => {
-    window.open(`${API}/backup`, '_blank');
-  };
-
-  const handleRestore = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    const json = JSON.parse(text);
-    if (!window.confirm('This will REPLACE all your current data with the backup. Are you sure?')) return;
-    await axios.post(`${API}/backup/restore`, json);
-    alert('Database restored successfully. Refresh the page.');
-  };
+  const { financials, byMarketplaceFinancials, byCategory, expiring } = data;
 
   return (
     <div className="dashboard">
-      <section className="dash-section">
-        <h2>Backup & Restore</h2>
-        <div className="backup-actions">
-          <button onClick={handleBackup} className="btn-backup">⬇ Download Backup</button>
-          <label className="btn-restore">
-            ⬆ Restore from Backup
-            <input type="file" accept=".json" onChange={handleRestore} style={{display: 'none'}} />
-          </label>
-        </div>
-        <p className="backup-note">Download saves everything. Restore replaces all current data.</p>
-      </section>
-
-      {/* --- NEW BULK EDIT SECTION START --- */}
-      <section className="dash-section bulk-section">
-        <h2>Bulk Inventory Actions</h2>
-        <div className="backup-actions">
-          <button 
-            onClick={onExport} 
-            className="btn-backup" 
-            style={{backgroundColor: '#2ecc71', color: 'white', fontWeight: 'bold'}}
-          >
-            ⬇ Export CSV for Bulk Edit
-          </button>
-          <label 
-            className="btn-restore" 
-            style={{backgroundColor: '#3498db', color: 'white', fontWeight: 'bold', cursor: 'pointer'}}
-          >
-            ⬆ Import CSV (Apply Changes)
-            <input 
-              type="file" 
-              accept=".csv" 
-              onChange={onImport} 
-              style={{display: 'none'}} 
-            />
-          </label>
-        </div>
-        <p className="backup-note">Export your data, edit it in Excel/Sheets (keep the ID column as-is), and import it back to save changes.</p>
-      </section>
-      {/* --- NEW BULK EDIT SECTION END --- */}
-
       <section className="dash-section">
         <h2>Overall Performance</h2>
         <div className="stat-grid">
@@ -320,57 +262,35 @@ function Dashboard({ onExport, onImport }) {
             <div className="stat-label">Total Cost</div>
             <div className="stat-value">{formatCurrency(financials.total_cost)}</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Fees & Shipping</div>
-            <div className="stat-value">{formatCurrency(parseFloat(financials.total_fees) + parseFloat(financials.total_shipping))}</div>
-          </div>
-          <div className="stat-card highlight">
+          <div className="stat-card highlight profit-card">
             <div className="stat-label">Net Profit</div>
             <div className="stat-value">{formatCurrency(financials.net_profit)}</div>
           </div>
         </div>
       </section>
 
-      <section className="dash-section">
-        <h2>Expiring Listings <span className="section-sub">sorted by soonest</span></h2>
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Platform</th>
-              <th>Asking Price</th>
-              <th>Days Left</th>
-            </tr>
-          </thead>
-          <tbody>
-            {expiring.map(l => (
-              <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent' : ''}>
-                <td>{l.name}</td>
-                <td>{l.platform}</td>
-                <td>{formatCurrency(l.asking_price)}</td>
-                <td>{l.days_left} days</td>
-              </tr>
-            ))}
-            {expiring.length === 0 && <tr><td colSpan="4" style={{textAlign:'center', color:'#888'}}>No active listings</td></tr>}
-          </tbody>
-        </table>
-      </section>
+      <section className="dash-section bulk-section">
+        <h2>Inventory Tools</h2>
+        <div className="backup-actions">
+          {/* CSV Group */}
+          <div className="tool-group">
+            <button onClick={onExport} className="btn-backup csv-btn">⬇ Export CSV</button>
+            <label className="btn-restore csv-btn">
+              ⬆ Import CSV
+              <input type="file" accept=".csv" onChange={onImport} style={{display: 'none'}} />
+            </label>
+          </div>
 
-      <section className="dash-section">
-        <h2>Currently Listed by Marketplace</h2>
-        <table className="dash-table">
-          <thead>
-            <tr><th>Platform</th><th>Active Listings</th></tr>
-          </thead>
-          <tbody>
-            {byMarketplaceListed.map(m => (
-              <tr key={m.platform}>
-                <td>{m.platform}</td>
-                <td>{m.listed_count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {/* System Backup Group */}
+          <div className="tool-group">
+            <button onClick={() => window.open(`${API}/backup`, '_blank')} className="btn-backup">💾 Save JSON Backup</button>
+            <label className="btn-restore">
+              📂 Restore JSON
+              <input type="file" accept=".json" onChange={onRestore} style={{display: 'none'}} />
+            </label>
+          </div>
+        </div>
+        <p className="backup-note">Use CSV for bulk updates. Use JSON for full database recovery.</p>
       </section>
 
       <section className="dash-section">
@@ -381,7 +301,6 @@ function Dashboard({ onExport, onImport }) {
               <th>Platform</th>
               <th>Sold</th>
               <th>Gross</th>
-              <th>Fees</th>
               <th>Net Profit</th>
             </tr>
           </thead>
@@ -391,8 +310,7 @@ function Dashboard({ onExport, onImport }) {
                 <td>{m.platform}</td>
                 <td>{m.total_sold}</td>
                 <td>{formatCurrency(m.gross_income)}</td>
-                <td>{formatCurrency(parseFloat(m.total_fees) + parseFloat(m.total_shipping))}</td>
-                <td className="profit">{formatCurrency(m.net_profit)}</td>
+                <td className="profit-text">{formatCurrency(m.net_profit)}</td>
               </tr>
             ))}
           </tbody>
@@ -408,7 +326,7 @@ function Dashboard({ onExport, onImport }) {
               <th>Sold</th>
               <th>Listed</th>
               <th>At Home</th>
-              <th>Net Profit</th>
+              <th>Profit</th>
             </tr>
           </thead>
           <tbody>
@@ -418,13 +336,35 @@ function Dashboard({ onExport, onImport }) {
                 <td>{c.total_sold}</td>
                 <td>{c.total_listed}</td>
                 <td>{c.total_at_home}</td>
-                <td className="profit">{formatCurrency(c.net_profit)}</td>
+                <td className="profit-text">{formatCurrency(c.net_profit)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </section>
 
+      <section className="dash-section">
+        <h2>Expiring Listings</h2>
+        <table className="dash-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Platform</th>
+              <th>Days Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expiring.map(l => (
+              <tr key={l.listing_id} className={l.days_left <= 7 ? 'urgent-row' : ''}>
+                <td>{l.name}</td>
+                <td>{l.platform}</td>
+                <td className={l.days_left <= 7 ? 'urgent-text' : ''}>{l.days_left} days</td>
+              </tr>
+            ))}
+            {expiring.length === 0 && <tr><td colSpan="3" style={{textAlign:'center', color:'#888'}}>No listings expiring soon</td></tr>}
+          </tbody>
+        </table>
+      </section>
     </div>
   );
 }
@@ -433,7 +373,10 @@ function ListingModal({ item, onClose, refresh }) {
   const [form, setForm] = useState({
     platform: 'eBay',
     asking_price: '',
-    listing_url: ''
+    listing_url: '',
+    offers_enabled: false,
+    min_offer_amount: '',
+    expiration_days: 30
   });
   const [error, setError] = useState('');
 
@@ -446,7 +389,10 @@ function ListingModal({ item, onClose, refresh }) {
       item_id: item.id,
       platform: form.platform,
       asking_price: parseFloat(form.asking_price),
-      listing_url: form.listing_url
+      listing_url: form.listing_url,
+      offers_enabled: form.offers_enabled,
+      min_offer_amount: form.offers_enabled ? parseFloat(form.min_offer_amount) : null,
+      expiration_days: parseInt(form.expiration_days) || 30
     });
     refresh();
     onClose();
@@ -457,6 +403,8 @@ function ListingModal({ item, onClose, refresh }) {
       <div className="modal">
         <h2>List "{item.name}"</h2>
         <p className="modal-sub">Where are you listing this?</p>
+        
+        <label className="modal-label">Platform</label>
         <select value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}>
           <option>eBay</option>
           <option>Mercari</option>
@@ -464,17 +412,30 @@ function ListingModal({ item, onClose, refresh }) {
           <option>OfferUp</option>
           <option>Poshmark</option>
         </select>
-        <input
-          placeholder="Asking price ($)"
-          type="number"
-          value={form.asking_price}
-          onChange={e => setForm({...form, asking_price: e.target.value})}
-        />
-        <input
-          placeholder="Listing URL (optional)"
-          value={form.listing_url}
-          onChange={e => setForm({...form, listing_url: e.target.value})}
-        />
+
+        <label className="modal-label">Asking Price ($)</label>
+        <input type="number" value={form.asking_price} onChange={e => setForm({...form, asking_price: e.target.value})} />
+
+        <div className="modal-checkbox-group">
+          <label>
+            <input type="checkbox" checked={form.offers_enabled} onChange={e => setForm({...form, offers_enabled: e.target.checked})} />
+            Allow Offers
+          </label>
+        </div>
+
+        {form.offers_enabled && (
+          <>
+            <label className="modal-label">Floor Price ($)</label>
+            <input type="number" value={form.min_offer_amount} onChange={e => setForm({...form, min_offer_amount: e.target.value})} />
+          </>
+        )}
+
+        <label className="modal-label">Expiration (Days)</label>
+        <input type="number" value={form.expiration_days} onChange={e => setForm({...form, expiration_days: e.target.value})} />
+
+        <label className="modal-label">URL</label>
+        <input value={form.listing_url} onChange={e => setForm({...form, listing_url: e.target.value})} />
+
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
@@ -486,25 +447,15 @@ function ListingModal({ item, onClose, refresh }) {
 }
 
 function SoldModal({ item, onClose, refresh }) {
-  const [form, setForm] = useState({
-    sale_price: '',
-    platform_fees: '',
-    shipping_costs: '',
-    tracking_url: ''
-  });
+  const [form, setForm] = useState({ sale_price: '', platform_fees: '', shipping_costs: '', tracking_url: '' });
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (!form.sale_price) {
-      setError('Please enter a sale price.');
-      return;
-    }
+    if (!form.sale_price) { setError('Sale price required.'); return; }
     const listingRes = await axios.get(`${API}/listings/${item.id}`);
     const listing = listingRes.data[0];
-    if (!listing) {
-      setError('No listing found for this item.');
-      return;
-    }
+    if (!listing) { setError('No listing found.'); return; }
+    
     await axios.patch(`${API}/listings/${listing.id}/sold`, {
       item_id: item.id,
       sale_price: parseFloat(form.sale_price),
@@ -519,35 +470,15 @@ function SoldModal({ item, onClose, refresh }) {
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h2>Mark "{item.name}" as Sold</h2>
-        <p className="modal-sub">Enter the sale details</p>
-        <input
-          placeholder="Sale price ($)"
-          type="number"
-          value={form.sale_price}
-          onChange={e => setForm({...form, sale_price: e.target.value})}
-        />
-        <input
-          placeholder="Platform fees ($) — optional"
-          type="number"
-          value={form.platform_fees}
-          onChange={e => setForm({...form, platform_fees: e.target.value})}
-        />
-        <input
-          placeholder="Shipping costs ($) — optional"
-          type="number"
-          value={form.shipping_costs}
-          onChange={e => setForm({...form, shipping_costs: e.target.value})}
-        />
-        <input
-          placeholder="Tracking URL (optional)"
-          value={form.tracking_url}
-          onChange={e => setForm({...form, tracking_url: e.target.value})}
-        />
+        <h2>Mark "{item.name}" Sold</h2>
+        <input placeholder="Sale price ($)" type="number" value={form.sale_price} onChange={e => setForm({...form, sale_price: e.target.value})} />
+        <input placeholder="Fees ($)" type="number" value={form.platform_fees} onChange={e => setForm({...form, platform_fees: e.target.value})} />
+        <input placeholder="Shipping ($)" type="number" value={form.shipping_costs} onChange={e => setForm({...form, shipping_costs: e.target.value})} />
+        <input placeholder="Tracking URL" value={form.tracking_url} onChange={e => setForm({...form, tracking_url: e.target.value})} />
         {error && <p className="modal-error">{error}</p>}
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
-          <button onClick={handleSubmit} className="btn-confirm">Confirm Sale</button>
+          <button onClick={handleSubmit} className="btn-confirm">Confirm</button>
         </div>
       </div>
     </div>
@@ -567,7 +498,8 @@ function EditModal({ item, onClose, refresh }) {
     dimensions: item.dimensions || '',
     color: item.color || '',
     condition: item.condition || '',
-    sku: item.sku || ''
+    sku: item.sku || '',
+    notes: item.notes || ''
   });
 
   const handleSubmit = async () => {
@@ -595,8 +527,6 @@ function EditModal({ item, onClose, refresh }) {
         <input placeholder="Quantity" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
         <input placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
         <input placeholder="Model" value={form.model} onChange={e => setForm({...form, model: e.target.value})} />
-        <input placeholder="Dimensions (e.g. 10x5x3 in)" value={form.dimensions} onChange={e => setForm({...form, dimensions: e.target.value})} />
-        <input placeholder="Color" value={form.color} onChange={e => setForm({...form, color: e.target.value})} />
         <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})}>
           <option value="">Condition</option>
           <option>New</option>
@@ -606,7 +536,7 @@ function EditModal({ item, onClose, refresh }) {
           <option>Poor</option>
         </select>
         <input placeholder="SKU" value={form.sku} onChange={e => setForm({...form, sku: e.target.value})} />
-        <textarea placeholder="Notes (e.g. missing battery cover, needs cleaning)" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        <textarea placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleSubmit} className="btn-confirm">Save Changes</button>
@@ -627,7 +557,7 @@ function DeleteModal({ item, onClose, refresh }) {
     <div className="modal-overlay">
       <div className="modal">
         <h2>Delete "{item.name}"?</h2>
-        <p className="modal-sub">This will permanently delete the item and all its listings. This cannot be undone.</p>
+        <p className="modal-sub">This will permanently delete the item. This cannot be undone.</p>
         <div className="modal-actions">
           <button onClick={onClose} className="btn-cancel">Cancel</button>
           <button onClick={handleDelete} className="btn-delete-confirm">Delete</button>
@@ -639,7 +569,6 @@ function DeleteModal({ item, onClose, refresh }) {
 
 function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
   const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <div className="menu-wrapper" onBlur={() => setTimeout(() => setMenuOpen(false), 150)}>
       <button className="btn-menu" onClick={() => setMenuOpen(!menuOpen)}>⋯</button>
@@ -657,14 +586,10 @@ function PlatformCardMenu({ item, onEdit, onDelete, onSold }) {
 function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
   const [items, setItems] = useState([]);
 
-  const fetchItems = () => {
+  useEffect(() => {
     axios.get(`${API}/items`).then(res => {
       setItems(res.data.filter(i => i.status === 'listed'));
     });
-  };
-
-  useEffect(() => {
-    fetchItems();
   }, [refresh]);
 
   const platforms = [...new Set(items.map(i => i.platform).filter(Boolean))];
@@ -684,34 +609,39 @@ function ByPlatform({ onSold, onEdit, onDelete, refresh }) {
           {items.filter(i => i.platform === platform).map(item => (
             <div key={item.id} className="platform-card">
               <div className="platform-card-name">{item.name}</div>
-              <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
-              <div className="platform-card-row"><span>Description</span><span>{item.description || '—'}</span></div>
-              <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>
+              
+              {/* Core Financials & Status */}
+              <div className="platform-card-row"><span>Asking Price</span><span className="highlight-price">{formatCurrency(item.asking_price)}</span></div>
               <div className="platform-card-row"><span>Cost</span><span>{formatCurrency(item.cost)}</span></div>
-              <div className="platform-card-row"><span>Asking Price</span><span>{formatCurrency(item.asking_price)}</span></div>
               <div className="platform-card-row"><span>Days Listed</span><span>{Math.floor((new Date() - new Date(item.listed_at)) / (1000 * 60 * 60 * 24))} days</span></div>
-              <div className="platform-card-row"><span>Photos Ready</span><span>{item.photos_ready ? '✓ Yes' : '✗ No'}</span></div>
+              
+              <hr className="card-divider" />
+              
+              {/* Product Details */}
+              <div className="platform-card-row"><span>Category</span><span>{item.category}</span></div>
               {item.brand && <div className="platform-card-row"><span>Brand</span><span>{item.brand}</span></div>}
               {item.model && <div className="platform-card-row"><span>Model</span><span>{item.model}</span></div>}
+              {item.sku && <div className="platform-card-row"><span>SKU</span><span className="sku-text">{item.sku}</span></div>}
+              
+              {/* Physical Logistics */}
+              {item.location && <div className="platform-card-row"><span>Location</span><span>{item.location}</span></div>}
               {item.dimensions && <div className="platform-card-row"><span>Dimensions</span><span>{item.dimensions}</span></div>}
               {item.color && <div className="platform-card-row"><span>Color</span><span>{item.color}</span></div>}
               {item.condition && <div className="platform-card-row"><span>Condition</span><span>{item.condition}</span></div>}
-              {item.sku && <div className="platform-card-row"><span>SKU</span><span>{item.sku}</span></div>}
-              {item.notes && <div className="platform-card-row"><span>Notes</span><span>{item.notes}</span></div>}
-              {item.listing_url && (
-                <div className="platform-card-row">
-                  <span>Listing</span>
-                  <a href={item.listing_url} target="_blank" rel="noreferrer" className="card-link">View Listing</a>
+              
+              {/* Notes & URLs */}
+              {item.notes && (
+                <div className="platform-card-notes">
+                  <strong>Notes:</strong> {item.notes}
                 </div>
               )}
-              {item.tracking_url && (
-                <div className="platform-card-row">
-                  <span>Tracking</span>
-                  <a href={item.tracking_url} target="_blank" rel="noreferrer" className="card-link">Track Package</a>
-                </div>
-              )}
-              {item.quantity > 1 && <div className="platform-card-row"><span>Quantity</span><span>{item.quantity}</span></div>}
-              <div className="platform-card-actions">
+              
+              <div className="platform-card-footer">
+                {item.listing_url && (
+                  <a href={item.listing_url} target="_blank" rel="noreferrer" className="btn-view-listing">
+                    🔗 View Listing
+                  </a>
+                )}
                 <PlatformCardMenu item={item} onEdit={onEdit} onDelete={onDelete} onSold={onSold} />
               </div>
             </div>

@@ -62,12 +62,32 @@ router.post('/restore', async (req, res) => {
     }
 
     // Restore listings
+    // Restore listings
     for (const listing of data.listings) {
       await pool.query(
-        `INSERT INTO listings (id, item_id, platform, asking_price, listed_at, sold_at, sale_price, platform_fees, shipping_costs, listing_url, tracking_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `INSERT INTO listings (
+          id, item_id, platform, asking_price, listed_at, 
+          sold_at, sale_price, platform_fees, shipping_costs, 
+          listing_url, tracking_url, offers_enabled, min_offer_amount, expiration_days
+        )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          ON CONFLICT (id) DO NOTHING`,
-        [listing.id, listing.item_id, listing.platform, listing.asking_price, listing.listed_at, listing.sold_at, listing.sale_price, listing.platform_fees, listing.shipping_costs, listing.listing_url, listing.tracking_url]
+        [
+          listing.id, 
+          listing.item_id, 
+          listing.platform, 
+          listing.asking_price, 
+          listing.listed_at || new Date(), // Prevents the -1 date issue
+          listing.sold_at, 
+          listing.sale_price, 
+          listing.platform_fees, 
+          listing.shipping_costs, 
+          listing.listing_url, 
+          listing.tracking_url,
+          listing.offers_enabled || false,
+          listing.min_offer_amount || null,
+          listing.expiration_days || 30
+        ]
       );
     }
 

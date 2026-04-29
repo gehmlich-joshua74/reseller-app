@@ -6,10 +6,24 @@ const csv = require('csv-parser');
 const stream = require('stream');
 
 // 1. EXPORT: Download all items as CSV
+// 1. EXPORT: Download all items and their listings as CSV
 router.get('/export', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM items ORDER BY created_at DESC');
-    const fields = ['id', 'name', 'category', 'status', 'cost', 'location', 'quantity', 'brand', 'model', 'sku', 'notes'];
+    // We JOIN the tables so we can see listing details (price, platform, floor, date)
+    const result = await pool.query(`
+      SELECT 
+        i.id, i.name, i.category, i.status, i.cost, i.location, i.quantity, i.brand, i.model, i.sku, i.notes,
+        l.platform, l.asking_price, l.offers_enabled, l.min_offer_amount, l.expiration_days, l.listed_at
+      FROM items i 
+      LEFT JOIN listings l ON i.id = l.item_id
+      ORDER BY i.created_at DESC
+    `);
+
+    const fields = [
+      'id', 'name', 'category', 'status', 'cost', 'location', 'quantity', 'brand', 'model', 'sku', 'notes',
+      'platform', 'asking_price', 'offers_enabled', 'min_offer_amount', 'expiration_days', 'listed_at'
+    ];
+    
     const json2csvParser = new Parser({ fields });
     const csvData = json2csvParser.parse(result.rows);
 
